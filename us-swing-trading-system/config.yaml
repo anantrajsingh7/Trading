@@ -1,0 +1,63 @@
+# US Swing Trading System Configuration
+
+account:
+  size: 10000          # USD
+  risk_per_trade: 0.01 # 1% of account per trade
+  max_positions: 5
+  min_rr_ratio: 2.0    # minimum risk/reward ratio
+
+trading:
+  min_price: 5.0       # avoid penny stocks
+  min_avg_volume: 500000
+  max_holding_days: 30 # trading days
+  earnings_avoid_days: 5
+
+data:
+  mode: api            # "api" or "csv"
+  csv_dir: data/raw
+  api_provider: yfinance
+  default_period: 2y   # history to download
+  benchmark_spy: SPY
+  benchmark_qqq: QQQ
+
+backtest:
+  slippage: 0.001      # 0.1% per trade
+  commission: 5.0      # USD per trade (round trip)
+  in_sample_end: "2023-06-30"
+  out_of_sample_start: "2023-07-01"
+
+indicators:
+  ema_fast: 20
+  ema_mid: 50
+  ema_slow: 200
+  rsi_period: 14
+  atr_period: 14
+  avg_volume_period: 20
+  consolidation_days: 5
+  atr_multiplier: 1.5
+
+strategies:
+  ema_pullback:
+    enabled: true
+    name: "EMA Trend Pullback"
+  breakout:
+    enabled: true
+    name: "Breakout"
+  momentum:
+    enabled: true
+    name: "Momentum Continuation"
+  mean_reversion:
+    enabled: true
+    name: "Mean Reversion in Uptrend"
+  volatility_contraction:
+    enabled: true
+    name: "Volatility Contraction Breakout"
+
+universe:
+  sp500: true
+  nasdaq100: true
+  custom_csv: data/tickers.csv
+
+logging:
+  level: INFO
+  file: reports/system.log
