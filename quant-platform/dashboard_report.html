@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Quant Platform — Daily + Weekly Dashboard | June 27, 2026</title>
+<style>
+  :root {
+    --bg: #0d1117; --card: #161b22; --border: #21262d;
+    --green: #3fb950; --red: #f85149; --yellow: #e3b341;
+    --blue: #58a6ff; --purple: #bc8cff; --orange: #ffa657;
+    --text: #c9d1d9; --muted: #8b949e; --white: #f0f6fc;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', monospace; font-size: 14px; }
+
+  .header { background: linear-gradient(135deg, #1a1f2e 0%, #0d1117 100%);
+    border-bottom: 1px solid var(--border); padding: 20px 32px;
+    display: flex; justify-content: space-between; align-items: center; }
+  .header h1 { font-size: 22px; color: var(--white); font-weight: 700; }
+  .header .meta { color: var(--muted); font-size: 12px; text-align: right; }
+  .regime-badge { display: inline-block; padding: 4px 12px; border-radius: 20px;
+    font-size: 11px; font-weight: 700; letter-spacing: 1px;
+    background: rgba(63,185,80,0.15); color: var(--green); border: 1px solid var(--green); }
+
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 32px; }
+  .section-title { font-size: 13px; font-weight: 700; color: var(--muted);
+    letter-spacing: 2px; text-transform: uppercase; margin-bottom: 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border); }
+
+  /* GRID */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 24px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-bottom: 24px; }
+  .grid-5 { display: grid; grid-template-columns: repeat(5,1fr); gap: 12px; margin-bottom: 24px; }
+  .span-2 { grid-column: span 2; }
+
+  /* CARDS */
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+  .card-sm { background: var(--card); border: 1px solid var(--border); border-radius: 8px; padding: 14px; }
+
+  /* STAT TILES */
+  .stat { text-align: center; }
+  .stat .label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+  .stat .value { font-size: 24px; font-weight: 700; color: var(--white); }
+  .stat .sub { font-size: 12px; margin-top: 2px; }
+  .up { color: var(--green); } .down { color: var(--red); } .flat { color: var(--yellow); }
+
+  /* MARKET BAR */
+  .market-row { display: flex; justify-content: space-between; align-items: center;
+    padding: 10px 0; border-bottom: 1px solid var(--border); }
+  .market-row:last-child { border-bottom: none; }
+  .market-name { font-weight: 600; color: var(--white); width: 80px; }
+  .market-price { font-size: 15px; font-weight: 700; }
+  .market-chg { font-size: 13px; font-weight: 600; text-align: right; min-width: 70px; }
+  .market-range { font-size: 11px; color: var(--muted); }
+
+  /* TRADE CARDS */
+  .trade-card { background: var(--card); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px; margin-bottom: 16px; position: relative; }
+  .trade-card::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0;
+    width: 4px; border-radius: 10px 0 0 10px; }
+  .trade-card.high::before { background: var(--green); }
+  .trade-card.medium::before { background: var(--yellow); }
+  .trade-card.watch::before { background: var(--blue); }
+
+  .trade-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px; }
+  .trade-ticker { font-size: 22px; font-weight: 800; color: var(--white); }
+  .trade-company { font-size: 12px; color: var(--muted); margin-top: 2px; }
+  .trade-score { text-align: right; }
+  .score-circle { width: 52px; height: 52px; border-radius: 50%; display: flex;
+    align-items: center; justify-content: center; font-size: 16px; font-weight: 800; }
+  .score-high { background: rgba(63,185,80,0.15); color: var(--green); border: 2px solid var(--green); }
+  .score-med { background: rgba(227,179,65,0.15); color: var(--yellow); border: 2px solid var(--yellow); }
+  .score-low { background: rgba(88,166,255,0.15); color: var(--blue); border: 2px solid var(--blue); }
+
+  /* RR TABLE */
+  .rr-grid { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; margin-bottom: 14px; }
+  .rr-cell { background: #0d1117; border-radius: 6px; padding: 10px 8px; text-align: center; }
+  .rr-cell .lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; margin-bottom: 4px; }
+  .rr-cell .val { font-size: 14px; font-weight: 700; }
+  .rr-cell.entry .val { color: var(--blue); }
+  .rr-cell.stop .val { color: var(--red); }
+  .rr-cell.t1 .val { color: #3fb950; }
+  .rr-cell.t2 .val { color: #3fb950; }
+  .rr-cell.t3 .val { color: #3fb950; }
+  .rr-cell.rr .val { color: var(--purple); font-size: 16px; }
+
+  /* RR BAR VISUAL */
+  .rr-visual { margin: 10px 0; position: relative; }
+  .rr-bar { height: 8px; border-radius: 4px; background: #21262d; position: relative; overflow: visible; }
+  .rr-risk { position: absolute; left: 0; top: 0; height: 100%; border-radius: 4px 0 0 4px; background: var(--red); }
+  .rr-reward { position: absolute; height: 100%; border-radius: 0 4px 4px 0; background: var(--green); }
+  .rr-labels { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 4px; }
+
+  /* TAGS */
+  .tags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .tag { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+  .tag-green { background: rgba(63,185,80,0.1); color: var(--green); border: 1px solid rgba(63,185,80,0.3); }
+  .tag-yellow { background: rgba(227,179,65,0.1); color: var(--yellow); border: 1px solid rgba(227,179,65,0.3); }
+  .tag-red { background: rgba(248,81,73,0.1); color: var(--red); border: 1px solid rgba(248,81,73,0.3); }
+  .tag-blue { background: rgba(88,166,255,0.1); color: var(--blue); border: 1px solid rgba(88,166,255,0.3); }
+  .tag-purple { background: rgba(188,140,255,0.1); color: var(--purple); border: 1px solid rgba(188,140,255,0.3); }
+
+  /* WEEKLY TABLE */
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 11px; color: var(--muted); text-transform: uppercase;
+    letter-spacing: 1px; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+  td { padding: 10px 12px; border-bottom: 1px solid #161b22; font-size: 13px; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .ticker-col { font-weight: 700; color: var(--white); font-size: 15px; }
+
+  /* MACRO BOX */
+  .macro-item { display: flex; justify-content: space-between; padding: 8px 0;
+    border-bottom: 1px solid var(--border); }
+  .macro-item:last-child { border-bottom: none; }
+  .macro-key { color: var(--muted); }
+  .macro-val { font-weight: 600; color: var(--white); }
+
+  /* RISK GAUGE */
+  .gauge { text-align: center; padding: 12px; }
+  .gauge-label { font-size: 11px; color: var(--muted); text-transform: uppercase; margin-bottom: 8px; }
+  .gauge-bar { height: 10px; border-radius: 5px; background: linear-gradient(to right, #3fb950, #e3b341, #f85149);
+    position: relative; margin-bottom: 8px; }
+  .gauge-pointer { position: absolute; top: -3px; width: 4px; height: 16px;
+    background: var(--white); border-radius: 2px; transform: translateX(-50%); }
+  .gauge-value { font-size: 18px; font-weight: 700; }
+
+  /* WEEK RECAP */
+  .week-day { padding: 8px 12px; border-left: 3px solid var(--border); margin-bottom: 8px; }
+  .week-day.positive { border-color: var(--green); }
+  .week-day.negative { border-color: var(--red); }
+  .week-day.neutral { border-color: var(--yellow); }
+  .week-day-header { display: flex; justify-content: space-between; font-weight: 600; margin-bottom: 2px; }
+  .week-day-note { font-size: 12px; color: var(--muted); }
+
+  .alert-box { background: rgba(63,185,80,0.05); border: 1px solid rgba(63,185,80,0.3);
+    border-radius: 8px; padding: 14px; margin-bottom: 12px; }
+  .alert-box.warn { background: rgba(227,179,65,0.05); border-color: rgba(227,179,65,0.3); }
+  .alert-box.danger { background: rgba(248,81,73,0.05); border-color: rgba(248,81,73,0.3); }
+  .alert-title { font-weight: 700; margin-bottom: 4px; }
+  .alert-title.g { color: var(--green); }
+  .alert-title.y { color: var(--yellow); }
+  .alert-title.r { color: var(--red); }
+
+  .divider { height: 1px; background: var(--border); margin: 28px 0; }
+  .mt { margin-top: 24px; }
+  .footnote { font-size: 11px; color: var(--muted); margin-top: 24px; padding-top: 16px;
+    border-top: 1px solid var(--border); }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════ HEADER ═══════════════════ -->
+<div class="header">
+  <div>
+    <h1>⚡ Quant Platform — Trading Dashboard</h1>
+    <div style="color:var(--muted);font-size:12px;margin-top:4px;">
+      Week of June 23–27, 2026 &nbsp;|&nbsp; US Markets &nbsp;|&nbsp; Swing Trading Focus
+    </div>
+  </div>
+  <div class="meta">
+    <div class="regime-badge">BULL MODERATE</div>
+    <div style="margin-top:8px;">Generated: June 27, 2026 Pre-Market</div>
+    <div>Next scan: 9:30 AM ET open</div>
+  </div>
+</div>
+
+<div class="container">
+
+<!-- ═══════════════════ MARKET SNAPSHOT ═══════════════════ -->
+<div class="section-title">📊 Market Snapshot — Week Close</div>
+<div class="grid-2">
+
+  <div class="card">
+    <div style="font-weight:700;color:var(--white);margin-bottom:14px;">Major Indices</div>
+    <div class="market-row">
+      <span class="market-name">SPY</span>
+      <span class="market-price">$734</span>
+      <span class="market-range">52w: $580–$748</span>
+      <span class="market-chg up">▲ +1.8% wk</span>
+    </div>
+    <div class="market-row">
+      <span class="market-name">QQQ</span>
+      <span class="market-price">$725</span>
+      <span class="market-range">Range: $710–$727</span>
+      <span class="market-chg up">▲ +2.1% wk</span>
+    </div>
+    <div class="market-row">
+      <span class="market-name">IWM</span>
+      <span class="market-price">$218</span>
+      <span class="market-range">Small caps lagging</span>
+      <span class="market-chg flat">▲ +0.4% wk</span>
+    </div>
+    <div class="market-row">
+      <span class="market-name">VIX</span>
+      <span class="market-price">14.2</span>
+      <span class="market-range">Below 20 = low fear</span>
+      <span class="market-chg down">▼ −1.8 wk</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;color:var(--white);margin-bottom:14px;">Macro Context</div>
+    <div class="macro-item"><span class="macro-key">Fed Rate</span><span class="macro-val flat">3.50%–3.75% (HOLD)</span></div>
+    <div class="macro-item"><span class="macro-key">PCE Inflation (May)</span><span class="macro-val down">4.1% YoY ▲ (hot)</span></div>
+    <div class="macro-item"><span class="macro-key">Core PCE</span><span class="macro-val down">3.6% (above Fed target)</span></div>
+    <div class="macro-item"><span class="macro-key">Fed Dot Plot</span><span class="macro-val down">17/18 officials: hike risk</span></div>
+    <div class="macro-item"><span class="macro-key">10Y Treasury</span><span class="macro-val flat">~4.65%</span></div>
+    <div class="macro-item"><span class="macro-key">Market Regime</span><span class="macro-val up">BULL MODERATE</span></div>
+  </div>
+</div>
+
+<!-- ═══════════════════ WEEKLY RECAP ═══════════════════ -->
+<div class="section-title">📅 Weekly Day-by-Day Recap</div>
+<div class="grid-2" style="margin-bottom:24px;">
+  <div class="card">
+    <div class="week-day neutral">
+      <div class="week-day-header"><span>Monday Jun 23</span><span class="flat">QQQ ~$711</span></div>
+      <div class="week-day-note">Quiet open. Tech consolidating after prior week gains. PCE data anticipated.</div>
+    </div>
+    <div class="week-day negative">
+      <div class="week-day-header"><span>Tuesday Jun 24</span><span class="down">QQQ $710.62 ▼</span></div>
+      <div class="week-day-note">Third consecutive down day. Risk-off signals. MU reports after close — massive beat ($41.5B rev vs $35.7B est). Shares +17% after-hours.</div>
+    </div>
+    <div class="week-day positive">
+      <div class="week-day-header"><span>Wednesday Jun 25</span><span class="up">QQQ $725 ▲ +2.0%</span></div>
+      <div class="week-day-note">Chip stocks surge on MU earnings. MU opens $1,228. PCE prints 4.1% — hotter than expected but market shrugs; AI narrative dominates. SMCI +8%.</div>
+    </div>
+    <div class="week-day positive">
+      <div class="week-day-header"><span>Thursday Jun 26</span><span class="up">QQQ ~$725 flat/+</span></div>
+      <div class="week-day-note">MU range $1,136–$1,255. Digestion day. SMCI surges +15% to $35.31. NVDA holds $200.70. AMD range $402–$431. Breadth improving.</div>
+    </div>
+    <div class="week-day neutral">
+      <div class="week-day-header"><span>Friday Jun 27</span><span class="flat">⏳ Pre-Market</span></div>
+      <div class="week-day-note">Today. Chip leadership intact. Watch MU above $1,255 for continuation. Monthly options expiry — potential volatility. End of quarter window dressing.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;color:var(--white);margin-bottom:14px;">Weekly Performance — Key Stocks</div>
+    <table>
+      <tr><th>Ticker</th><th>Price</th><th>Week</th><th>Notes</th></tr>
+      <tr>
+        <td class="ticker-col">MU</td>
+        <td>~$1,200</td>
+        <td class="up">+17%+</td>
+        <td style="color:var(--muted)">Blowout earnings</td>
+      </tr>
+      <tr>
+        <td class="ticker-col">SMCI</td>
+        <td>~$35</td>
+        <td class="up">+15%</td>
+        <td style="color:var(--muted)">AI server demand</td>
+      </tr>
+      <tr>
+        <td class="ticker-col">NVDA</td>
+        <td>$200.70</td>
+        <td class="up">+3%</td>
+        <td style="color:var(--muted)">$4.89T mkt cap</td>
+      </tr>
+      <tr>
+        <td class="ticker-col">AMD</td>
+        <td>~$415</td>
+        <td class="up">+2%</td>
+        <td style="color:var(--muted)">Range $402–$431</td>
+      </tr>
+      <tr>
+        <td class="ticker-col">AAPL</td>
+        <td>$298</td>
+        <td class="flat">+0.5%</td>
+        <td style="color:var(--muted)">Near 52w high $317</td>
+      </tr>
+      <tr>
+        <td class="ticker-col">AMZN</td>
+        <td>$244</td>
+        <td class="flat">+1%</td>
+        <td style="color:var(--muted)">Below 52w high</td>
+      </tr>
+      <tr>
+        <td class="ticker-col">QQQ</td>
+        <td>$725</td>
+        <td class="up">+2.1%</td>
+        <td style="color:var(--muted)">Above all MAs</td>
+      </tr>
+    </table>
+
+    <div style="margin-top:16px;">
+      <div style="font-weight:700;color:var(--white);margin-bottom:10px;">Sector Leadership This Week</div>
+      <div class="tags">
+        <span class="tag tag-green">🏆 Semiconductors +8%</span>
+        <span class="tag tag-green">AI Servers +6%</span>
+        <span class="tag tag-yellow">Software +1%</span>
+        <span class="tag tag-red">Financials −0.5%</span>
+        <span class="tag tag-red">Utilities −1%</span>
+        <span class="tag tag-red">REITs −2%</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ RISK ENVIRONMENT ═══════════════════ -->
+<div class="section-title">⚠️ Risk Environment</div>
+<div class="grid-4" style="margin-bottom:24px;">
+  <div class="card-sm gauge">
+    <div class="gauge-label">Market Risk</div>
+    <div class="gauge-bar"><div class="gauge-pointer" style="left:35%"></div></div>
+    <div class="gauge-value up">LOW-MED</div>
+    <div style="font-size:11px;color:var(--muted)">VIX 14.2 — complacent</div>
+  </div>
+  <div class="card-sm gauge">
+    <div class="gauge-label">Fed Risk</div>
+    <div class="gauge-bar"><div class="gauge-pointer" style="left:68%"></div></div>
+    <div class="gauge-value flat">ELEVATED</div>
+    <div style="font-size:11px;color:var(--muted)">PCE 4.1% — hike risk</div>
+  </div>
+  <div class="card-sm gauge">
+    <div class="gauge-label">Sector Risk</div>
+    <div class="gauge-bar"><div class="gauge-pointer" style="left:25%"></div></div>
+    <div class="gauge-value up">LOW</div>
+    <div style="font-size:11px;color:var(--muted)">Semis leading strongly</div>
+  </div>
+  <div class="card-sm gauge">
+    <div class="gauge-label">Position Scale</div>
+    <div class="gauge-bar"><div class="gauge-pointer" style="left:55%"></div></div>
+    <div class="gauge-value flat">75%</div>
+    <div style="font-size:11px;color:var(--muted)">Bull Moderate regime</div>
+  </div>
+</div>
+
+<div class="grid-3" style="margin-bottom:24px;">
+  <div class="alert-box">
+    <div class="alert-title g">✅ Green Flags</div>
+    <ul style="margin-top:6px;padding-left:16px;font-size:12px;line-height:1.8;color:var(--text)">
+      <li>MU blowout confirms AI chip supercycle intact</li>
+      <li>VIX 14.2 — market not pricing fear</li>
+      <li>QQQ above EMA20, EMA50, EMA200</li>
+      <li>Chip breadth expanding (AMD, SMCI, NVDA all up)</li>
+      <li>End of quarter = window dressing into tech leaders</li>
+    </ul>
+  </div>
+  <div class="alert-box warn">
+    <div class="alert-title y">⚠️ Yellow Flags</div>
+    <ul style="margin-top:6px;padding-left:16px;font-size:12px;line-height:1.8;color:var(--text)">
+      <li>PCE 4.1% — inflation re-accelerating</li>
+      <li>Fed dot plot signals hike risk in H2 2026</li>
+      <li>MU pulled back from $1,255 → $1,136 intraday (volatile)</li>
+      <li>Monthly options expiry today — pin risk</li>
+      <li>Small caps (IWM) not confirming breadth</li>
+    </ul>
+  </div>
+  <div class="alert-box danger">
+    <div class="alert-title r">🔴 Red Flags / Invalidation</div>
+    <ul style="margin-top:6px;padding-left:16px;font-size:12px;line-height:1.8;color:var(--text)">
+      <li>If QQQ breaks below $700 — reduce ALL positions</li>
+      <li>If VIX spikes above 25 — go to 25% position scale</li>
+      <li>If Fed emergency hike — full cash</li>
+      <li>MU below $1,100 = post-earnings base failed</li>
+      <li>Jobs report miss next week = risk-off</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ═══════════════════ TODAY'S TRADE SETUPS ═══════════════════ -->
+<div class="section-title">🎯 Today's Trade Setups — June 27, 2026</div>
+<div style="color:var(--muted);font-size:12px;margin-bottom:16px;">
+  Account size: $100,000 &nbsp;|&nbsp; Risk per trade: 1% ($1,000) &nbsp;|&nbsp; Regime scale: 75% ($750 risk) &nbsp;|&nbsp; Min score: 85/100
+</div>
+
+<!-- ═══ TRADE 1: MU ═══ -->
+<div class="trade-card high">
+  <div class="trade-header">
+    <div>
+      <div class="trade-ticker">MU <span style="font-size:14px;color:var(--muted)">Micron Technology</span></div>
+      <div class="trade-company">Semiconductors — AI Memory (HBM3E/HBM4)</div>
+      <div class="tags" style="margin-top:8px;">
+        <span class="tag tag-green">Post-Earnings Breakout</span>
+        <span class="tag tag-green">Minervini Stage 2</span>
+        <span class="tag tag-purple">HBM4 Booked 2027</span>
+        <span class="tag tag-blue">Highest Conviction</span>
+      </div>
+    </div>
+    <div class="trade-score">
+      <div class="score-circle score-high">9.0</div>
+      <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px;">/ 10</div>
+    </div>
+  </div>
+
+  <div class="rr-grid">
+    <div class="rr-cell entry"><div class="lbl">Entry</div><div class="val">$1,255</div></div>
+    <div class="rr-cell stop"><div class="lbl">Stop Loss</div><div class="val">$1,136</div></div>
+    <div class="rr-cell t1"><div class="lbl">Target 1 (50%)</div><div class="val">$1,373</div></div>
+    <div class="rr-cell t2"><div class="lbl">Target 2 (30%)</div><div class="val">$1,475</div></div>
+    <div class="rr-cell t3"><div class="lbl">Target 3 (20%)</div><div class="val">$1,600</div></div>
+    <div class="rr-cell rr"><div class="lbl">R:R (T1)</div><div class="val">1.0:1</div></div>
+  </div>
+
+  <div class="rr-visual">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Risk / Reward Visual</div>
+    <div class="rr-bar" style="background:#21262d;">
+      <div class="rr-risk" style="width:16%;left:0;"></div>
+      <div class="rr-reward" style="width:28%;left:16%;opacity:0.6;"></div>
+      <div class="rr-reward" style="width:19%;left:44%;opacity:0.7;"></div>
+      <div class="rr-reward" style="width:18%;left:63%;opacity:0.9;"></div>
+    </div>
+    <div class="rr-labels">
+      <span>$1,136 Stop</span><span>$1,255 Entry</span><span>$1,373 T1</span><span>$1,475 T2</span><span>$1,600 T3</span>
+    </div>
+  </div>
+
+  <div class="grid-4" style="margin-top:14px;gap:8px;margin-bottom:0;">
+    <div class="rr-cell"><div class="lbl">Risk/Share</div><div class="val" style="color:var(--red)">$119</div></div>
+    <div class="rr-cell"><div class="lbl">Shares (@75% scale)</div><div class="val" style="color:var(--white)">6</div></div>
+    <div class="rr-cell"><div class="lbl">$ at Risk</div><div class="val" style="color:var(--red)">$714</div></div>
+    <div class="rr-cell"><div class="lbl">Position Size</div><div class="val" style="color:var(--blue)">$7,530</div></div>
+  </div>
+
+  <div style="margin-top:14px;padding:10px;background:#0d1117;border-radius:6px;font-size:12px;line-height:1.7;">
+    <span style="color:var(--green);font-weight:700;">WHY IT QUALIFIES:</span>
+    <span style="color:var(--text)"> Revenue $41.5B (+74% YoY) crushed $35.7B estimate. EPS $25.11 vs $20.49 (+23% beat).
+    HBM3E + HBM4 fully booked through 2027, demand extending to 2028. $22B strategic agreements with $18B cash deposits.
+    Record FCF. Q4 FCF guided >$30B. This is a Stage 2 institutional breakout — not a trade, a position.</span>
+  </div>
+  <div style="margin-top:6px;font-size:11px;color:var(--red);">
+    ⛔ INVALIDATION: Close below $1,100 (post-earnings base failed). Exit immediately.
+  </div>
+</div>
+
+<!-- ═══ TRADE 2: SMCI ═══ -->
+<div class="trade-card medium">
+  <div class="trade-header">
+    <div>
+      <div class="trade-ticker">SMCI <span style="font-size:14px;color:var(--muted)">Super Micro Computer</span></div>
+      <div class="trade-company">AI Servers / Data Center Infrastructure</div>
+      <div class="tags" style="margin-top:8px;">
+        <span class="tag tag-green">Pocket Pivot +15%</span>
+        <span class="tag tag-yellow">AI Coattail Play</span>
+        <span class="tag tag-red">Higher Risk — Size Small</span>
+      </div>
+    </div>
+    <div class="trade-score">
+      <div class="score-circle score-med">7.5</div>
+      <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px;">/ 10</div>
+    </div>
+  </div>
+
+  <div class="rr-grid">
+    <div class="rr-cell entry"><div class="lbl">Entry</div><div class="val">$35–$37</div></div>
+    <div class="rr-cell stop"><div class="lbl">Stop Loss</div><div class="val">$30.50</div></div>
+    <div class="rr-cell t1"><div class="lbl">Target 1 (50%)</div><div class="val">$42</div></div>
+    <div class="rr-cell t2"><div class="lbl">Target 2 (30%)</div><div class="val">$48</div></div>
+    <div class="rr-cell t3"><div class="lbl">Target 3 (20%)</div><div class="val">$56</div></div>
+    <div class="rr-cell rr"><div class="lbl">R:R (T1)</div><div class="val" style="color:var(--yellow)">1.4:1</div></div>
+  </div>
+
+  <div class="rr-visual">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Risk / Reward Visual</div>
+    <div class="rr-bar">
+      <div class="rr-risk" style="width:22%;left:0;"></div>
+      <div class="rr-reward" style="width:30%;left:22%;opacity:0.6;"></div>
+      <div class="rr-reward" style="width:25%;left:52%;opacity:0.8;"></div>
+    </div>
+    <div class="rr-labels">
+      <span>$30.50 Stop</span><span>$36 Entry</span><span>$42 T1</span><span>$48 T2</span><span>$56 T3</span>
+    </div>
+  </div>
+
+  <div class="grid-4" style="margin-top:14px;gap:8px;margin-bottom:0;">
+    <div class="rr-cell"><div class="lbl">Risk/Share</div><div class="val" style="color:var(--red)">$5.50</div></div>
+    <div class="rr-cell"><div class="lbl">Shares (@50% scale)</div><div class="val" style="color:var(--white)">90</div></div>
+    <div class="rr-cell"><div class="lbl">$ at Risk</div><div class="val" style="color:var(--red)">$495</div></div>
+    <div class="rr-cell"><div class="lbl">Position Size</div><div class="val" style="color:var(--blue)">$3,240</div></div>
+  </div>
+
+  <div style="margin-top:14px;padding:10px;background:#0d1117;border-radius:6px;font-size:12px;line-height:1.7;">
+    <span style="color:var(--yellow);font-weight:700;">WHY IT QUALIFIES:</span>
+    <span style="color:var(--text)"> Pocket pivot volume signal June 26 (+15% on massive volume). Direct beneficiary of MU/NVDA AI server demand.
+    AI server market growing 40%+ YoY. However: SMCI has had historical accounting issues — use 0.5% risk max, not 1%.</span>
+  </div>
+  <div style="margin-top:6px;font-size:11px;color:var(--red);">⛔ INVALIDATION: Close below $30.50. Also watch for any regulatory/audit news.</div>
+</div>
+
+<!-- ═══ TRADE 3: NVDA ═══ -->
+<div class="trade-card watch">
+  <div class="trade-header">
+    <div>
+      <div class="trade-ticker">NVDA <span style="font-size:14px;color:var(--muted)">NVIDIA Corporation</span></div>
+      <div class="trade-company">AI Compute — GPUs / Data Centers</div>
+      <div class="tags" style="margin-top:8px;">
+        <span class="tag tag-blue">Stage 2 Uptrend</span>
+        <span class="tag tag-green">EMA Pullback Entry</span>
+        <span class="tag tag-purple">$4.89T Market Cap</span>
+      </div>
+    </div>
+    <div class="trade-score">
+      <div class="score-circle score-low">7.0</div>
+      <div style="font-size:10px;color:var(--muted);text-align:center;margin-top:4px;">/ 10</div>
+    </div>
+  </div>
+
+  <div class="rr-grid">
+    <div class="rr-cell entry"><div class="lbl">Entry Zone</div><div class="val">$198–$203</div></div>
+    <div class="rr-cell stop"><div class="lbl">Stop Loss</div><div class="val">$188</div></div>
+    <div class="rr-cell t1"><div class="lbl">Target 1 (50%)</div><div class="val">$218</div></div>
+    <div class="rr-cell t2"><div class="lbl">Target 2 (30%)</div><div class="val">$238</div></div>
+    <div class="rr-cell t3"><div class="lbl">Target 3 (20%)</div><div class="val">$265</div></div>
+    <div class="rr-cell rr"><div class="lbl">R:R (T1)</div><div class="val" style="color:var(--blue)">1.5:1</div></div>
+  </div>
+
+  <div class="rr-visual">
+    <div style="font-size:11px;color:var(--muted);margin-bottom:4px;">Risk / Reward Visual</div>
+    <div class="rr-bar">
+      <div class="rr-risk" style="width:20%;left:0;"></div>
+      <div class="rr-reward" style="width:30%;left:20%;opacity:0.6;"></div>
+      <div class="rr-reward" style="width:27%;left:50%;opacity:0.8;"></div>
+    </div>
+    <div class="rr-labels">
+      <span>$188 Stop</span><span>$200 Entry</span><span>$218 T1</span><span>$238 T2</span><span>$265 T3</span>
+    </div>
+  </div>
+
+  <div class="grid-4" style="margin-top:14px;gap:8px;margin-bottom:0;">
+    <div class="rr-cell"><div class="lbl">Risk/Share</div><div class="val" style="color:var(--red)">$12</div></div>
+    <div class="rr-cell"><div class="lbl">Shares (@75% scale)</div><div class="val" style="color:var(--white)">62</div></div>
+    <div class="rr-cell"><div class="lbl">$ at Risk</div><div class="val" style="color:var(--red)">$744</div></div>
+    <div class="rr-cell"><div class="lbl">Position Size</div><div class="val" style="color:var(--blue)">$12,400</div></div>
+  </div>
+
+  <div style="margin-top:14px;padding:10px;background:#0d1117;border-radius:6px;font-size:12px;line-height:1.7;">
+    <span style="color:var(--blue);font-weight:700;">WHY IT QUALIFIES:</span>
+    <span style="color:var(--text)"> Clean Stage 2 uptrend. $200.70 is near 10-EMA support — classic pullback entry in uptrend.
+    MU earnings confirm AI capex not slowing. NVDA is the primary beneficiary of every dollar spent on AI infrastructure.
+    Wait for pullback into $198–$203 zone; don't chase above $205.</span>
+  </div>
+  <div style="margin-top:6px;font-size:11px;color:var(--red);">⛔ INVALIDATION: Close below $188 (below base). Broad market selloff on PCE/Fed news.</div>
+</div>
+
+<!-- ═══════════════════ POSITION SIZING SUMMARY ═══════════════════ -->
+<div class="section-title mt">💼 Portfolio Allocation Summary</div>
+<div class="card" style="margin-bottom:24px;">
+  <table>
+    <tr>
+      <th>Ticker</th><th>Strategy</th><th>Score</th><th>Entry</th><th>Stop</th>
+      <th>T1</th><th>T2</th><th>R:R T1</th><th>R:R T2</th><th>Risk $</th><th>Position $</th><th>% Account</th>
+    </tr>
+    <tr>
+      <td class="ticker-col">MU</td>
+      <td><span class="tag tag-green" style="font-size:10px;">Post-Earnings</span></td>
+      <td><span class="up" style="font-weight:700;">9.0</span></td>
+      <td>$1,255</td><td class="down">$1,136</td>
+      <td class="up">$1,373</td><td class="up">$1,475</td>
+      <td class="up">1.0:1</td><td class="up">1.8:1</td>
+      <td class="down">$714</td><td>$7,530</td><td>7.5%</td>
+    </tr>
+    <tr>
+      <td class="ticker-col">SMCI</td>
+      <td><span class="tag tag-yellow" style="font-size:10px;">Pocket Pivot</span></td>
+      <td><span class="flat" style="font-weight:700;">7.5</span></td>
+      <td>$36</td><td class="down">$30.50</td>
+      <td class="up">$42</td><td class="up">$48</td>
+      <td class="up">1.4:1</td><td class="up">2.4:1</td>
+      <td class="down">$495</td><td>$3,240</td><td>3.2%</td>
+    </tr>
+    <tr>
+      <td class="ticker-col">NVDA</td>
+      <td><span class="tag tag-blue" style="font-size:10px;">EMA Pullback</span></td>
+      <td><span class="flat" style="font-weight:700;">7.0</span></td>
+      <td>$200</td><td class="down">$188</td>
+      <td class="up">$218</td><td class="up">$238</td>
+      <td class="up">1.5:1</td><td class="up">3.2:1</td>
+      <td class="down">$744</td><td>$12,400</td><td>12.4%</td>
+    </tr>
+    <tr style="background:rgba(255,255,255,0.02);font-weight:700;">
+      <td colspan="9" style="color:var(--muted);">TOTAL DEPLOYED</td>
+      <td class="down">$1,953</td>
+      <td style="color:var(--white);">$23,170</td>
+      <td style="color:var(--white);">23.2%</td>
+    </tr>
+    <tr style="background:rgba(255,255,255,0.02);">
+      <td colspan="9" style="color:var(--muted);">CASH RESERVE</td>
+      <td>—</td>
+      <td class="up">$76,830</td>
+      <td class="up">76.8%</td>
+    </tr>
+  </table>
+  <div style="margin-top:12px;font-size:11px;color:var(--muted);">
+    ℹ️ Regime = BULL MODERATE → position scale 75% of normal. Normal risk $1,000/trade → scaled to $750.
+    Max positions in current regime: 8. Currently using 3. Cash reserve 76.8% (well above 15% minimum).
+  </div>
+</div>
+
+<!-- ═══════════════════ WEEKLY STRATEGY REVIEW ═══════════════════ -->
+<div class="section-title">📈 Weekly Strategy Review</div>
+<div class="grid-2" style="margin-bottom:24px;">
+  <div class="card">
+    <div style="font-weight:700;color:var(--white);margin-bottom:14px;">Strategy Performance This Week</div>
+    <table>
+      <tr><th>Strategy</th><th>Signals</th><th>Best Signal</th><th>Status</th></tr>
+      <tr>
+        <td>Minervini VCP</td><td>2</td><td>MU (9.0)</td>
+        <td><span class="tag tag-green" style="font-size:10px;">✅ Active</span></td>
+      </tr>
+      <tr>
+        <td>Volume Breakout</td><td>1</td><td>SMCI (7.5)</td>
+        <td><span class="tag tag-green" style="font-size:10px;">✅ Active</span></td>
+      </tr>
+      <tr>
+        <td>EMA Pullback</td><td>1</td><td>NVDA (7.0)</td>
+        <td><span class="tag tag-green" style="font-size:10px;">✅ Active</span></td>
+      </tr>
+      <tr>
+        <td>Momentum TTM</td><td>0</td><td>—</td>
+        <td><span class="tag tag-yellow" style="font-size:10px;">⏳ Waiting</span></td>
+      </tr>
+      <tr>
+        <td>Mean Reversion</td><td>0</td><td>—</td>
+        <td><span class="tag tag-blue" style="font-size:10px;">📊 Watching</span></td>
+      </tr>
+    </table>
+    <div style="margin-top:12px;font-size:12px;color:var(--muted);">
+      Semiconductor sector driving all signals this week.
+      Breadth narrow — concentration risk in AI theme. Normal.
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="font-weight:700;color:var(--white);margin-bottom:14px;">Key Levels to Watch Next Week</div>
+    <div class="macro-item"><span class="macro-key">QQQ Bull/Bear Line</span><span class="macro-val up">$700 (EMA50)</span></div>
+    <div class="macro-item"><span class="macro-key">SPY Support</span><span class="macro-val up">$718 (EMA20)</span></div>
+    <div class="macro-item"><span class="macro-key">MU Continuation</span><span class="macro-val up">&gt; $1,255</span></div>
+    <div class="macro-item"><span class="macro-key">MU Base Failure</span><span class="macro-val down">&lt; $1,100</span></div>
+    <div class="macro-item"><span class="macro-key">VIX Concern Level</span><span class="macro-val down">&gt; 20 = reduce</span></div>
+    <div class="macro-item"><span class="macro-key">Next Catalyst</span><span class="macro-val flat">Jobs Report (Jul 3)</span></div>
+    <div class="macro-item"><span class="macro-key">PCE Follow-up</span><span class="macro-val flat">Jun 27 PCE revision</span></div>
+
+    <div style="margin-top:14px;padding:10px;background:#0d1117;border-radius:6px;font-size:12px;line-height:1.7;color:var(--text);">
+      <span style="color:var(--yellow);font-weight:700;">NEXT WEEK WATCH:</span>
+      End of quarter (Jun 30) fund rebalancing, Jobs report July 3.
+      If jobs strong → Fed hike odds rise → market may dip.
+      If jobs weak → Fed stays hold → AI rally continues.
+      Position for AI continuation but keep stop discipline.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ OPEN CHECKLIST ═══════════════════ -->
+<div class="section-title">✅ Pre-Market Open Checklist — June 27</div>
+<div class="card" style="margin-bottom:24px;">
+  <div class="grid-3">
+    <div>
+      <div style="font-weight:700;color:var(--white);margin-bottom:10px;">Before 9:30 AM</div>
+      <div style="font-size:12px;line-height:2;color:var(--text);">
+        ☐ Check MU premarket — above $1,255? = Entry valid<br>
+        ☐ Check SMCI premarket — holding $35+?<br>
+        ☐ Check NVDA premarket — near $200?<br>
+        ☐ Check SPY futures — positive = risk-on<br>
+        ☐ Check VIX — below 16 = proceed normally<br>
+        ☐ Scan for any overnight news (Fed, macro, earnings)
+      </div>
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--white);margin-bottom:10px;">9:30–10:00 AM (First 30 min)</div>
+      <div style="font-size:12px;line-height:2;color:var(--text);">
+        ☐ DO NOT enter first 5 minutes (too volatile)<br>
+        ☐ Wait for MU to confirm direction above/below $1,255<br>
+        ☐ Watch SMCI VWAP hold — buy on VWAP reclaim<br>
+        ☐ NVDA: enter only if pulling back to $198–$200<br>
+        ☐ Set all stop-loss orders immediately after entry<br>
+        ☐ Note today = monthly options expiry (extra volatile)
+      </div>
+    </div>
+    <div>
+      <div style="font-weight:700;color:var(--white);margin-bottom:10px;">Risk Rules (Non-Negotiable)</div>
+      <div style="font-size:12px;line-height:2;color:var(--text);">
+        ☐ Never risk more than $750 per trade today (75% scale)<br>
+        ☐ Max 3 new positions on options expiry day<br>
+        ☐ If SPY drops &gt;1% at open → wait, no new entries<br>
+        ☐ Move stop to breakeven if position up 1.5R<br>
+        ☐ Take 50% off at T1, let rest run to T2/T3<br>
+        ☐ Never average down on a losing position
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════ FOOTNOTE ═══════════════════ -->
+<div class="footnote">
+  <strong>Disclaimer:</strong> This dashboard is for research and educational purposes only.
+  All prices are sourced from publicly available market data as of June 26, 2026.
+  This is not financial advice. Do not place real trades based solely on this report.
+  Always verify prices with your broker before trading. Past performance does not guarantee future results.
+  <br><br>
+  <strong>Data Sources:</strong>
+  <a href="https://www.cnbc.com/2026/06/24/micron-mu-earnings-report-q3-2026.html" style="color:var(--blue)">Micron Q3 2026 Earnings — CNBC</a> &nbsp;|&nbsp;
+  <a href="https://www.investing.com/news/stock-market-news/chip-stocks-surge-afterhours-on-microns-record-quarter-4759184" style="color:var(--blue)">MU Premarket Surge — Investing.com</a> &nbsp;|&nbsp;
+  <a href="https://www.stocktitan.net/articles/fed-rate-decision-june-17-2026" style="color:var(--blue)">Fed Rate Decision June 2026 — StockTitan</a> &nbsp;|&nbsp;
+  <a href="https://blog.kraken.com/economic-brief/june-24-2026" style="color:var(--blue)">PCE Data Preview — Kraken Blog</a>
+  <br><br>
+  Generated by Quant Platform v1.0 — Session 2 | Branch: claude/swing-trading-analysis-system-e439iw
+</div>
+
+</div>
+</body>
+</html>
