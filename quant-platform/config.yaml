@@ -1,0 +1,190 @@
+# ============================================================
+# Quant Platform — Master Configuration
+# ============================================================
+
+platform:
+  name: "Quant Platform"
+  version: "1.0.0"
+  session: 1
+  environment: "development"       # development | production
+
+# ============================================================
+# ACCOUNT & RISK
+# ============================================================
+account:
+  currency: "USD"
+  size: 100000                     # Starting capital
+  risk_per_trade: 0.01             # 1% max risk per trade
+  max_open_positions: 10
+  max_sector_exposure: 0.30        # 30% max in any single sector
+  max_single_position: 0.10        # 10% max in any single stock
+  min_cash_reserve: 0.15           # Always keep 15% cash
+  min_rr_ratio: 2.0
+  kelly_fraction: 0.25             # Use 25% of full Kelly (conservative)
+
+# ============================================================
+# MARKETS
+# ============================================================
+markets:
+  us:
+    enabled: true
+    indices:
+      - SP500
+      - NASDAQ100
+      - RUSSELL1000
+    min_price: 10.0
+    min_avg_volume: 500000
+    min_market_cap: 500000000      # $500M
+  india:
+    enabled: false                 # Session 2
+    indices:
+      - NIFTY50
+      - NIFTY_NEXT50
+      - NIFTY500
+    min_price: 50.0                # INR
+    min_avg_volume: 100000
+
+# ============================================================
+# DATA
+# ============================================================
+data:
+  primary_provider: "yfinance"
+  cache_enabled: true
+  cache_dir: "db"
+  default_history: "5y"
+  extended_history: "20y"
+  intraday_enabled: false          # Session 2
+  providers:
+    yfinance:
+      enabled: true
+      rate_limit_sleep: 0.5        # seconds between calls
+    polygon:
+      enabled: false
+      api_key_env: "POLYGON_API_KEY"
+    alphavantage:
+      enabled: false
+      api_key_env: "ALPHAVANTAGE_API_KEY"
+    twelvedata:
+      enabled: false
+      api_key_env: "TWELVEDATA_API_KEY"
+
+# ============================================================
+# INDICATORS
+# ============================================================
+indicators:
+  ema:
+    periods: [5, 10, 20, 50, 100, 150, 200]
+  sma:
+    periods: [20, 50, 150, 200]
+  rsi:
+    period: 14
+    overbought: 70
+    oversold: 30
+  atr:
+    period: 14
+    multiplier: 1.5
+  adx:
+    period: 14
+    trend_threshold: 25
+  macd:
+    fast: 12
+    slow: 26
+    signal: 9
+  bollinger:
+    period: 20
+    std_dev: 2.0
+  volume:
+    avg_period: 50
+    breakout_multiplier: 1.5
+    accumulation_multiplier: 2.0
+  rs:
+    period: 63                     # ~3 months relative strength
+    benchmark_us: "SPY"
+    benchmark_india: "^NSEI"
+
+# ============================================================
+# STRATEGIES
+# ============================================================
+strategies:
+  min_score_to_trade: 85           # Only show candidates scoring 85+/100
+  enabled:
+    - minervini_trend_template
+    - vcp
+    - breakout_52w
+    - ema_pullback
+    - rs_momentum
+    - darvas_box
+    - nr7_breakout
+    - bollinger_squeeze
+
+# ============================================================
+# BACKTESTING
+# ============================================================
+backtest:
+  slippage: 0.001                  # 0.1% per trade
+  commission_usd: 1.0              # $1 per trade (modern broker)
+  commission_pct: 0.0              # Percentage commission (use one or other)
+  default_periods:
+    - "5y"
+    - "10y"
+    - "20y"
+  walk_forward:
+    in_sample_pct: 0.70            # 70% in-sample
+    min_trades: 30                 # Minimum trades for statistical validity
+  monte_carlo:
+    simulations: 1000
+    confidence_level: 0.95
+  max_holding_days: 60
+
+# ============================================================
+# SCANNER
+# ============================================================
+scanner:
+  min_score: 85
+  max_results: 50
+  run_time_utc: "21:30"            # After US market close (4:30 PM ET)
+  filters:
+    require_above_ema200: true
+    require_positive_rs: true
+    require_volume_confirmation: true
+    exclude_earnings_within_days: 7
+
+# ============================================================
+# PORTFOLIO
+# ============================================================
+portfolio:
+  db_path: "db/portfolio.db"
+  track_benchmark: "SPY"
+
+# ============================================================
+# ALERTS
+# ============================================================
+alerts:
+  enabled: false                   # Session 2
+  channels:
+    email:
+      enabled: false
+    telegram:
+      enabled: false
+      bot_token_env: "TELEGRAM_BOT_TOKEN"
+      chat_id_env: "TELEGRAM_CHAT_ID"
+    discord:
+      enabled: false
+      webhook_env: "DISCORD_WEBHOOK"
+
+# ============================================================
+# REPORTING
+# ============================================================
+reporting:
+  output_dir: "reports"
+  daily_report: true
+  weekly_review: true
+
+# ============================================================
+# LOGGING
+# ============================================================
+logging:
+  level: "INFO"
+  file: "logs/platform.log"
+  rotation: "daily"
+  retention_days: 90
