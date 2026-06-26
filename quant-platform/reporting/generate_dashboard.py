@@ -286,4 +286,17 @@ def generate(output_path: Path | None = None) -> Path:
 
 
 if __name__ == "__main__":
-    generate()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--email", action="store_true", help="Send via email after generating")
+    parser.add_argument("--test-email", action="store_true", help="Test email connection only")
+    args = parser.parse_args()
+
+    if args.test_email:
+        from reporting.email_sender import test_connection
+        test_connection()
+    else:
+        path = generate()
+        if args.email or os.getenv("DASHBOARD_AUTO_EMAIL", "").lower() == "true":
+            from reporting.email_sender import send_dashboard
+            send_dashboard(path)
