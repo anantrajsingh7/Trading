@@ -51,11 +51,12 @@ MIN_HIST_TRADES   = 5
 MIN_HIST_WINRATE  = 0.50
 MIN_HIST_PF       = 1.2
 
-# Hybrid exit: bank half at +1.5R, trail the rest (validate with
-# backtest_runner ema_pullback before changing). Time stop rotates
-# dead capital out after ~3 weeks — this is a 1-2 week swing system.
-EXIT_MODE = "hybrid"
-MAX_HOLD_DAYS = 21
+# Exit config — decided by A/B/C/D backtest on 2026-07-03:
+#   targets 6.4% CAGR / trailing 10.1% / hybrid 7.5% / hybrid+21d 6.8%
+# Pure trailing won decisively. Partial profit-taking and time stops
+# both clipped the tail winners that carry the whole edge.
+EXIT_MODE = "trailing"
+MAX_HOLD_DAYS = None
 
 # Minervini RS gate: only trade stocks outperforming >=70% of universe
 RS_MIN = 70
@@ -329,7 +330,7 @@ def build():
       <strong>Conf.</strong> = confluence: ●●● three strategies agree, ●● two, ● one. More dots = higher conviction.<br>
       <strong>Hist Win%</strong> / <strong>Hist PF</strong> = how this exact strategy performed on THIS stock over 5 years (win rate & profit factor).<br>
       <strong>VALIDATED requires:</strong> historical win rate ≥50%, profit factor ≥1.2, RS rank ≥70 (stock outperforms 70% of universe),
-      and no earnings within {EARNINGS_BLACKOUT_DAYS} days. Exits: bank half at +1.5R, trail rest (ATR), time-stop after {MAX_HOLD_DAYS} days.<br>
+      and no earnings within {EARNINGS_BLACKOUT_DAYS} days. Exit: ATR trailing stop — let winners run (A/B tested: beats fixed targets and partial banking).<br>
       Target is +10% swing goal; R:R compares that to your stop risk. Qty sized to 1% account risk, capped at 10% position.
       <strong>Never hold more than {MAX_OPEN} positions at once</strong> — total open risk stays ≤ {CUR}{risk_eur*MAX_OPEN:,.0f}.
     </div>
