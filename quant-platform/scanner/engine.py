@@ -207,8 +207,16 @@ class Scanner:
 
         account_size = float(self.cfg.get("account", {}).get("size", 100_000))
         risk_pct     = float(self.cfg.get("account", {}).get("risk_per_trade", 0.01))
+        max_single   = float(self.cfg.get("account", {}).get("max_single_position", 0.10))
         dollar_risk  = account_size * risk_pct * pos_scale
         shares       = max(1, int(dollar_risk / risk_per_share))
+
+        # Cap position so it never exceeds the max-single-position limit
+        # (protects small accounts from tight-stop setups sizing huge).
+        max_pos_value = account_size * max_single
+        if shares * signal.entry_price > max_pos_value:
+            shares = max(1, int(max_pos_value / signal.entry_price))
+
         pos_usd      = shares * signal.entry_price
 
         rr_t1 = (signal.target_1 - signal.entry_price) / risk_per_share if risk_per_share else 0
