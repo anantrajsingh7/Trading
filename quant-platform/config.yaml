@@ -13,8 +13,8 @@ platform:
 # ============================================================
 account:
   currency: "EUR"
-  size: 25000                      # Starting capital (€25,000)
-  risk_per_trade: 0.01             # 1% max risk per trade
+  size: 30000                      # Starting capital (€30,000)
+  risk_per_trade: 0.01             # 1% max risk per trade (€300)
   max_open_positions: 10
   max_sector_exposure: 0.30        # 30% max in any single sector
   max_single_position: 0.10        # 10% max in any single stock

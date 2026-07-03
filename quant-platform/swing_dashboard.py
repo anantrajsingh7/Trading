@@ -39,7 +39,8 @@ _ROOT = Path(__file__).resolve().parent
 
 MARKET = "INDIA" if (len(sys.argv) > 1 and sys.argv[1].lower() == "india") else "US"
 CUR = "₹" if MARKET == "INDIA" else "€"
-ACCOUNT = 500_000 if MARKET == "INDIA" else 25_000
+ACCOUNT = 500_000 if MARKET == "INDIA" else 30_000
+MAX_RISK = 5_000 if MARKET == "INDIA" else 300   # hard cap per trade
 
 # Only the strategies that passed walk-forward / made money in backtest.
 # mean_reversion (loses money) and momentum (fires nothing) are excluded.
@@ -142,8 +143,9 @@ def build():
         })
     ranked.sort(key=lambda x: x["combined"], reverse=True)
 
-    # ── Position sizing (1% risk, capped at 10% of account) ────────
-    risk_eur = ACCOUNT * 0.01 * (scale_pct / 100)
+    # ── Position sizing (1% risk, hard-capped at MAX_RISK,
+    #    position capped at 10% of account) ────────────────────────
+    risk_eur = min(ACCOUNT * 0.01 * (scale_pct / 100), MAX_RISK)
     for r in ranked:
         qty = max(1, int(risk_eur / r["risk_ps"])) if r["risk_ps"] > 0 else 1
         if qty * r["entry"] > ACCOUNT * 0.10:
