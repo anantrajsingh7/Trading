@@ -39,9 +39,20 @@ class Backtester:
     data: dict[ticker, enriched_df]  (call enrich() before passing)
     """
 
-    def __init__(self, strategy: BaseStrategy, cfg: dict):
+    def __init__(self, strategy: BaseStrategy, cfg: dict,
+                 exit_mode: str = "targets", trail_atr_mult: float = 2.5):
+        """
+        exit_mode:
+          "targets"  — fixed T1/T2/T3 partial exits (original behaviour)
+          "trailing" — let winners run with an ATR-based trailing stop that
+                       ratchets up but never down. Cuts losers at the initial
+                       stop, but never caps the upside.
+        trail_atr_mult — how many ATRs below the high-water close to trail.
+        """
         self.strategy = strategy
         self.cfg = cfg
+        self.exit_mode = exit_mode
+        self.trail_atr_mult = trail_atr_mult
         self._capital_cfg = cfg.get("account", {})
         self._initial_capital = float(self._capital_cfg.get("size", 100_000))
         self._risk_per_trade  = float(self._capital_cfg.get("risk_per_trade", 0.01))
@@ -156,6 +167,35 @@ class Backtester:
                 exit_price  = None
                 exit_reason = None
                 shares_closed = pos["shares"]
+
+                if self.exit_mode == "trailing":
+                    # ── Trailing-stop exit: let winners run ────────────
+                    close_px = float(bar["close"])
+                    atr_v = float(bar.get("atr_14", close_px * 0.02))
+                    # Ratchet the stop up (never down) once price advances
+                    new_trail = close_px - self.trail_atr_mult * atr_v
+                    if new_trail > pos["stop"]:
+                        pos["stop"] = new_trail
+
+                    if low <= pos["stop"]:
+                        exit_price  = pos["stop"]
+                        exit_reason = ExitReason.TRAILING_STOP
+                        shares_closed = pos["shares"]
+
+                    if exit_price is not None:
+                        pnl = (exit_price - entry) * shares_closed
+                        capital += shares_closed * exit_price
+                        completed.append(BacktestTrade(
+                            ticker=ticker, strategy=self.strategy.name,
+                            entry_date=pos["entry_date"], exit_date=today,
+                            entry_price=entry, exit_price=exit_price,
+                            shares=shares_closed,
+                            pnl=pnl, pnl_pct=(exit_price - entry) / entry,
+                            holding_days=(today - pos["entry_date"]).days,
+                            exit_reason=exit_reason, mae=pos["mae"], mfe=pos["mfe"],
+                        ))
+                        closed_today.append(ticker)
+                    continue  # skip the fixed-target logic below
 
                 # Stop hit (intrabar check using low)
                 if low <= pos["stop"]:

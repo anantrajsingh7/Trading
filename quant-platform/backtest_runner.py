@@ -36,10 +36,11 @@ BASKET = [
 PERIOD = "5y"
 
 
-def run_one(strategy, data, cfg):
-    print(f"\n{'#'*60}\n#  {strategy.name.upper()}  —  {strategy.description}\n{'#'*60}")
+def run_one(strategy, data, cfg, exit_mode="targets"):
+    label = f"{strategy.name.upper()}  [exit={exit_mode}]"
+    print(f"\n{'#'*60}\n#  {label}  —  {strategy.description}\n{'#'*60}")
 
-    bt = Backtester(strategy, cfg)
+    bt = Backtester(strategy, cfg, exit_mode=exit_mode)
     result = bt.run(data)
 
     if not result.trades:
@@ -83,10 +84,13 @@ def main():
     data = {t: enrich(df, patterns=True) for t, df in raw.items()}
 
     if len(sys.argv) > 1:
-        run_one(get_strategy(sys.argv[1]), data, cfg)
+        s = get_strategy(sys.argv[1])
+        # Head-to-head: fixed targets vs trailing-stop exit
+        run_one(s, data, cfg, exit_mode="targets")
+        run_one(s, data, cfg, exit_mode="trailing")
     else:
         for s in all_strategies():
-            run_one(s, data, cfg)
+            run_one(s, data, cfg, exit_mode="targets")
 
     print("\n" + "="*60)
     print("Read the VERDICT lines. A strategy worth trading should show")
