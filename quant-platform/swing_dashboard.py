@@ -81,14 +81,18 @@ def build():
     universe = get_universe(cfg, MARKET)
     print(f"Scanning {len(universe)} tickers with per-stock backtest validation...")
     raw = get_data_batch(universe, period="5y", show_progress=True)
-    enriched = {t: enrich(df, patterns=True) for t, df in raw.items()}
+
+    from tqdm import tqdm
+    enriched = {}
+    for t, df in tqdm(raw.items(), desc="Computing indicators", unit="stock"):
+        enriched[t] = enrich(df, patterns=True)
 
     strategies = [get_strategy(n) for n in GOOD_STRATEGIES]
 
     # ── Find today's signals + validate each on the stock's history ─
     # candidates[ticker] = {strategies:[...], signal: best_signal, scores:{}}
     candidates = {}
-    for ticker, df in enriched.items():
+    for ticker, df in tqdm(enriched.items(), desc="Scanning + validating", unit="stock"):
         if len(df) < 252:
             continue
         for strat in strategies:
