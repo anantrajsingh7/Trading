@@ -57,6 +57,10 @@ EXIT_MODE = "trailing"
 # Swing target: a stock the trader wants ~10% on
 SWING_TARGET_PCT = 0.10
 
+# Board always shows at least this many names (validated first, then
+# best near-misses clearly labelled WATCH with the reason they fell short)
+BOARD_MIN = 5
+
 
 def _regime_color(r):
     return {"BULL_STRONG": "#3fb950", "BULL_MODERATE": "#58a6ff", "NEUTRAL": "#e3b341",
@@ -92,6 +96,7 @@ def build():
     # ── Find today's signals + validate each on the stock's history ─
     # candidates[ticker] = {strategies:[...], signal: best_signal, scores:{}}
     candidates = {}
+    near_misses = {}
     for ticker, df in tqdm(enriched.items(), desc="Scanning + validating", unit="stock"):
         if len(df) < 252:
             continue
@@ -107,14 +112,23 @@ def build():
             bt = Backtester(strat, cfg, exit_mode=EXIT_MODE)
             res = bt.run({ticker: df})
             m = res.metrics
-            if (m.n_trades < MIN_HIST_TRADES or m.win_rate < MIN_HIST_WINRATE
-                    or m.profit_factor < MIN_HIST_PF):
-                continue  # this setup hasn't worked on this stock — skip
 
-            c = candidates.setdefault(ticker, {
+            # Determine validation status + reason
+            reasons = []
+            if m.n_trades < MIN_HIST_TRADES:
+                reasons.append(f"only {m.n_trades} hist. trades")
+            if m.win_rate < MIN_HIST_WINRATE:
+                reasons.append(f"win rate {m.win_rate*100:.0f}%")
+            if m.profit_factor < MIN_HIST_PF:
+                reasons.append(f"PF {m.profit_factor:.2f}")
+            validated = not reasons
+
+            bucket = candidates if validated else near_misses
+            c = bucket.setdefault(ticker, {
                 "strategies": [], "signal": sig, "best_score": 0,
                 "hist_winrate": m.win_rate, "hist_pf": m.profit_factor,
                 "hist_expectancy": m.expectancy, "hist_trades": m.n_trades,
+                "reason": "; ".join(reasons),
             })
             c["strategies"].append(strat.name)
             if sig.score > c["best_score"]:
@@ -124,16 +138,15 @@ def build():
                 c["hist_pf"] = m.profit_factor
                 c["hist_expectancy"] = m.expectancy
                 c["hist_trades"] = m.n_trades
+                c["reason"] = "; ".join(reasons)
 
     # ── Rank: confluence first, then historical edge ───────────────
-    ranked = []
-    for ticker, c in candidates.items():
+    def _to_row(ticker, c, status):
         sig = c["signal"]
         risk_ps = sig.entry_price - sig.stop_loss
-        # confluence bonus: +score for each extra strategy agreeing
         confluence = len(set(c["strategies"]))
         combined = c["best_score"] + (confluence - 1) * 10 + c["hist_pf"] * 5
-        ranked.append({
+        return {
             "ticker": ticker, "strategies": sorted(set(c["strategies"])),
             "confluence": confluence, "score": c["best_score"],
             "entry": sig.entry_price, "stop": sig.stop_loss,
@@ -143,9 +156,19 @@ def build():
             "rr_swing": (sig.entry_price * SWING_TARGET_PCT) / risk_ps if risk_ps > 0 else 0,
             "hist_winrate": c["hist_winrate"], "hist_pf": c["hist_pf"],
             "hist_expectancy": c["hist_expectancy"], "hist_trades": c["hist_trades"],
-            "combined": combined,
-        })
+            "combined": combined, "status": status, "reason": c.get("reason", ""),
+        }
+
+    ranked = [_to_row(t, c, "VALIDATED") for t, c in candidates.items()]
     ranked.sort(key=lambda x: x["combined"], reverse=True)
+
+    # Fill the board to at least BOARD_MIN with the best near-misses,
+    # clearly labelled WATCH with the reason they fell short.
+    watch = [_to_row(t, c, "WATCH") for t, c in near_misses.items()
+             if t not in candidates]
+    watch.sort(key=lambda x: x["combined"], reverse=True)
+    n_fill = max(0, BOARD_MIN - len(ranked))
+    ranked += watch[:max(n_fill, 2)]   # always show at least 2 watch names for context
 
     # ── Position sizing (1% risk, hard-capped at MAX_RISK,
     #    position capped at 10% of account) ────────────────────────
@@ -165,9 +188,16 @@ def build():
                       else "<span style='color:#8b949e;'>●</span>")
         wr_color = "#3fb950" if r["hist_winrate"] >= 0.6 else "#58a6ff" if r["hist_winrate"] >= 0.5 else "#e3b341"
         strat_str = ", ".join(s.replace("_", " ") for s in r["strategies"])
+        if r["status"] == "VALIDATED":
+            status_html = "<span style='color:#3fb950;font-weight:700;'>✔ VALIDATED</span>"
+        else:
+            status_html = (f"<span style='color:#e3b341;font-weight:700;'>⚠ WATCH</span>"
+                           f"<br><span style='color:#8b949e;font-size:10px;'>{r['reason']}</span>")
+        dim = "" if r["status"] == "VALIDATED" else "opacity:0.75;"
         rows += f"""
-        <tr>
+        <tr style="{dim}">
           <td><strong style="color:#f0f6fc;">{tk}</strong></td>
+          <td>{status_html}</td>
           <td style="text-align:center;">{conf_badge}</td>
           <td style="color:#58a6ff;font-size:12px;">{strat_str}</td>
           <td>{CUR}{r['entry']:,.2f}</td>
@@ -181,14 +211,16 @@ def build():
         </tr>"""
 
     if not rows:
-        rows = ('<tr><td colspan="11" style="text-align:center;color:#8b949e;padding:24px;">'
-                'No validated setups today. No stock is both flagging a setup AND has a '
-                'winning backtest history for that setup. Stay in cash.</td></tr>')
+        rows = ('<tr><td colspan="12" style="text-align:center;color:#8b949e;padding:24px;">'
+                'No setups flagged at all today. Stay in cash.</td></tr>')
 
-    n = len(ranked)
-    banner = (f"{n} validated setup(s) — each has flagged today AND won historically on that stock"
-              if n else "No validated setups today — patience, stay in cash.")
-    bcolor = "#3fb950" if n else "#e3b341"
+    n_val = sum(1 for r in ranked if r["status"] == "VALIDATED")
+    n_watch = sum(1 for r in ranked if r["status"] == "WATCH")
+    banner = (f"{n_val} VALIDATED setup(s) + {n_watch} watchlist name(s). "
+              f"Only trade VALIDATED rows; WATCH rows show why they fell short."
+              if n_val else
+              f"No fully validated setups today — {n_watch} watchlist name(s) shown for context. Stay in cash or wait.")
+    bcolor = "#3fb950" if n_val else "#e3b341"
 
     html = f"""<!DOCTYPE html><html lang="en"><head>
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -225,7 +257,7 @@ def build():
   <div class="card">
     <table>
       <thead><tr>
-        <th>Stock</th><th>Conf.</th><th>Strategy</th><th>Entry</th><th>Stop</th>
+        <th>Stock</th><th>Status</th><th>Conf.</th><th>Strategy</th><th>Entry</th><th>Stop</th>
         <th>Target +10%</th><th>R:R</th><th>Hist Win%</th><th>Hist PF</th><th>#Trades</th><th>Qty</th>
       </tr></thead>
       <tbody>{rows}</tbody>
@@ -248,7 +280,7 @@ def build():
     out = reports / f"{prefix}swing_dashboard_{today.isoformat()}.html"
     out.write_text(html, encoding="utf-8")
     print(f"\nDashboard: {out}")
-    print(f"  {len(ranked)} validated setups (flagged today AND winning backtest on that stock)")
+    print(f"  {n_val} VALIDATED + {n_watch} WATCH names on the board")
     webbrowser.open(out.resolve().as_uri())
     return out
 

@@ -42,7 +42,7 @@ _RUSSELL1000_FALLBACK = _SP500_FALLBACK  # Approximation
 @lru_cache(maxsize=None)
 def get_sp500_tickers() -> list[str]:
     try:
-        df = pd.read_html(
+        df = _read_html_ua(
             "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies",
             attrs={"id": "constituents"},
         )[0]
@@ -54,10 +54,23 @@ def get_sp500_tickers() -> list[str]:
         return _SP500_FALLBACK
 
 
+def _read_html_ua(url: str, **kwargs):
+    """pd.read_html with a browser User-Agent (Wikipedia 403s the default)."""
+    from io import StringIO
+    import requests
+    resp = requests.get(
+        url,
+        headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"},
+        timeout=20,
+    )
+    resp.raise_for_status()
+    return pd.read_html(StringIO(resp.text), **kwargs)
+
+
 @lru_cache(maxsize=None)
 def get_nasdaq100_tickers() -> list[str]:
     try:
-        tables = pd.read_html(
+        tables = _read_html_ua(
             "https://en.wikipedia.org/wiki/Nasdaq-100",
             attrs={"id": "constituents"},
         )
