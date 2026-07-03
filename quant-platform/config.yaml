@@ -12,8 +12,8 @@ platform:
 # ACCOUNT & RISK
 # ============================================================
 account:
-  currency: "USD"
-  size: 100000                     # Starting capital
+  currency: "EUR"
+  size: 25000                      # Starting capital (€25,000)
   risk_per_trade: 0.01             # 1% max risk per trade
   max_open_positions: 10
   max_sector_exposure: 0.30        # 30% max in any single sector

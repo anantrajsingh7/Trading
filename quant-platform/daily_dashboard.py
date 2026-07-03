@@ -28,8 +28,8 @@ log = get_logger("daily_dashboard")
 _ROOT = Path(__file__).resolve().parent
 
 MARKET = "INDIA" if (len(sys.argv) > 1 and sys.argv[1].lower() == "india") else "US"
-CUR = "₹" if MARKET == "INDIA" else "$"
-ACCOUNT = 500_000 if MARKET == "INDIA" else 100_000
+CUR = "₹" if MARKET == "INDIA" else "€"
+ACCOUNT = 500_000 if MARKET == "INDIA" else 25_000
 
 
 def _regime_color(regime: str) -> str:
