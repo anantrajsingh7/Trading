@@ -36,11 +36,12 @@ BASKET = [
 PERIOD = "5y"
 
 
-def run_one(strategy, data, cfg, exit_mode="targets"):
-    label = f"{strategy.name.upper()}  [exit={exit_mode}]"
+def run_one(strategy, data, cfg, exit_mode="targets", max_hold_days=None):
+    hold = f", timestop={max_hold_days}d" if max_hold_days else ""
+    label = f"{strategy.name.upper()}  [exit={exit_mode}{hold}]"
     print(f"\n{'#'*60}\n#  {label}  —  {strategy.description}\n{'#'*60}")
 
-    bt = Backtester(strategy, cfg, exit_mode=exit_mode)
+    bt = Backtester(strategy, cfg, exit_mode=exit_mode, max_hold_days=max_hold_days)
     result = bt.run(data)
 
     if not result.trades:
@@ -85,9 +86,11 @@ def main():
 
     if len(sys.argv) > 1:
         s = get_strategy(sys.argv[1])
-        # Head-to-head: fixed targets vs trailing-stop exit
+        # Head-to-head: all exit styles, plus swing-length time stop
         run_one(s, data, cfg, exit_mode="targets")
         run_one(s, data, cfg, exit_mode="trailing")
+        run_one(s, data, cfg, exit_mode="hybrid")
+        run_one(s, data, cfg, exit_mode="hybrid", max_hold_days=21)
     else:
         for s in all_strategies():
             run_one(s, data, cfg, exit_mode="targets")

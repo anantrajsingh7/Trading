@@ -40,19 +40,26 @@ class Backtester:
     """
 
     def __init__(self, strategy: BaseStrategy, cfg: dict,
-                 exit_mode: str = "targets", trail_atr_mult: float = 2.5):
+                 exit_mode: str = "targets", trail_atr_mult: float = 2.5,
+                 max_hold_days: int | None = None):
         """
         exit_mode:
           "targets"  — fixed T1/T2/T3 partial exits (original behaviour)
           "trailing" — let winners run with an ATR-based trailing stop that
                        ratchets up but never down. Cuts losers at the initial
                        stop, but never caps the upside.
+          "hybrid"   — bank half at T1 (+1.5R), move stop to breakeven, then
+                       trail the remaining half with the ATR stop. Locks in
+                       profit like "targets", keeps upside like "trailing".
         trail_atr_mult — how many ATRs below the high-water close to trail.
+        max_hold_days  — time stop: exit at close after this many calendar
+                         days regardless of P&L (dead-capital rotation).
         """
         self.strategy = strategy
         self.cfg = cfg
         self.exit_mode = exit_mode
         self.trail_atr_mult = trail_atr_mult
+        self.max_hold_days = max_hold_days
         self._capital_cfg = cfg.get("account", {})
         self._initial_capital = float(self._capital_cfg.get("size", 100_000))
         self._risk_per_trade  = float(self._capital_cfg.get("risk_per_trade", 0.01))
@@ -168,11 +175,23 @@ class Backtester:
                 exit_reason = None
                 shares_closed = pos["shares"]
 
-                if self.exit_mode == "trailing":
-                    # ── Trailing-stop exit: let winners run ────────────
+                if self.exit_mode in ("trailing", "hybrid"):
+                    # ── Trailing / hybrid exit ─────────────────────────
                     close_px = float(bar["close"])
                     atr_v = float(bar.get("atr_14", close_px * 0.02))
-                    # Ratchet the stop up (never down) once price advances
+
+                    partial_fill = None  # (price, shares) banked at T1 today
+
+                    # Hybrid: bank half at T1, stop→breakeven, trail the rest
+                    if (self.exit_mode == "hybrid" and not pos["partial"]
+                            and high >= pos["t1"]):
+                        half = max(1, pos["shares"] // 2)
+                        partial_fill = (pos["t1"], half)
+                        pos["shares"] -= half
+                        pos["partial"] = True
+                        pos["stop"] = max(pos["stop"], entry)  # breakeven floor
+
+                    # Ratchet the trailing stop up (never down)
                     new_trail = close_px - self.trail_atr_mult * atr_v
                     if new_trail > pos["stop"]:
                         pos["stop"] = new_trail
@@ -182,7 +201,27 @@ class Backtester:
                         exit_reason = ExitReason.TRAILING_STOP
                         shares_closed = pos["shares"]
 
-                    if exit_price is not None:
+                    # Time stop: rotate out dead capital
+                    if (exit_price is None and self.max_hold_days is not None
+                            and (today - pos["entry_date"]).days >= self.max_hold_days):
+                        exit_price  = close_px
+                        exit_reason = ExitReason.MAX_HOLD
+                        shares_closed = pos["shares"]
+
+                    if partial_fill is not None:
+                        fp, fs = partial_fill
+                        capital += fs * fp
+                        completed.append(BacktestTrade(
+                            ticker=ticker, strategy=self.strategy.name,
+                            entry_date=pos["entry_date"], exit_date=today,
+                            entry_price=entry, exit_price=fp, shares=fs,
+                            pnl=(fp - entry) * fs, pnl_pct=(fp - entry) / entry,
+                            holding_days=(today - pos["entry_date"]).days,
+                            exit_reason=ExitReason.TARGET_1,
+                            mae=pos["mae"], mfe=pos["mfe"],
+                        ))
+
+                    if exit_price is not None and shares_closed > 0:
                         pnl = (exit_price - entry) * shares_closed
                         capital += shares_closed * exit_price
                         completed.append(BacktestTrade(

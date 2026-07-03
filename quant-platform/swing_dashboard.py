@@ -51,8 +51,20 @@ MIN_HIST_TRADES   = 5
 MIN_HIST_WINRATE  = 0.50
 MIN_HIST_PF       = 1.2
 
-# Trailing exit let winners run — proven better for swing holds
-EXIT_MODE = "trailing"
+# Hybrid exit: bank half at +1.5R, trail the rest (validate with
+# backtest_runner ema_pullback before changing). Time stop rotates
+# dead capital out after ~3 weeks — this is a 1-2 week swing system.
+EXIT_MODE = "hybrid"
+MAX_HOLD_DAYS = 21
+
+# Minervini RS gate: only trade stocks outperforming >=70% of universe
+RS_MIN = 70
+
+# Never hold a 1-2 week swing into earnings
+EARNINGS_BLACKOUT_DAYS = 14
+
+# Portfolio heat: never more than this many concurrent open positions
+MAX_OPEN = 5
 
 # Swing target: a stock the trader wants ~10% on
 SWING_TARGET_PCT = 0.10
@@ -65,6 +77,40 @@ BOARD_MIN = 5
 def _regime_color(r):
     return {"BULL_STRONG": "#3fb950", "BULL_MODERATE": "#58a6ff", "NEUTRAL": "#e3b341",
             "BEAR_MODERATE": "#ffa657", "BEAR_STRONG": "#f85149"}.get(r, "#8b949e")
+
+
+def _rs_ranks(enriched: dict) -> dict:
+    """RS score = 0.4*ROC3M + 0.2*ROC6M + 0.2*ROC9M + 0.2*ROC12M,
+    expressed as percentile rank vs the scanned universe."""
+    scores = {}
+    for t, df in enriched.items():
+        c = df["close"]
+        if len(c) < 252:
+            continue
+        try:
+            scores[t] = (0.4 * (c.iloc[-1] / c.iloc[-63] - 1)
+                         + 0.2 * (c.iloc[-1] / c.iloc[-126] - 1)
+                         + 0.2 * (c.iloc[-1] / c.iloc[-189] - 1)
+                         + 0.2 * (c.iloc[-1] / c.iloc[-252] - 1))
+        except Exception:
+            pass
+    vals = list(scores.values())
+    return {t: sum(1 for v in vals if v <= s) / len(vals) * 100
+            for t, s in scores.items()} if vals else {}
+
+
+def _days_to_earnings(ticker: str):
+    """Days until next earnings, or None if unknown. Best-effort."""
+    try:
+        import yfinance as yf
+        cal = yf.Ticker(ticker).calendar
+        dates = cal.get("Earnings Date") if isinstance(cal, dict) else None
+        if dates:
+            nxt = min(d for d in dates if d >= date.today())
+            return (nxt - date.today()).days
+    except Exception:
+        pass
+    return None
 
 
 def build():
@@ -92,6 +138,7 @@ def build():
         enriched[t] = enrich(df, patterns=True)
 
     strategies = [get_strategy(n) for n in GOOD_STRATEGIES]
+    rs_ranks = _rs_ranks(enriched)
 
     # ── Find today's signals + validate each on the stock's history ─
     # candidates[ticker] = {strategies:[...], signal: best_signal, scores:{}}
@@ -109,7 +156,8 @@ def build():
                 continue
 
             # Backtest THIS strategy on THIS stock's history
-            bt = Backtester(strat, cfg, exit_mode=EXIT_MODE)
+            bt = Backtester(strat, cfg, exit_mode=EXIT_MODE,
+                            max_hold_days=MAX_HOLD_DAYS)
             res = bt.run({ticker: df})
             m = res.metrics
 
@@ -121,6 +169,9 @@ def build():
                 reasons.append(f"win rate {m.win_rate*100:.0f}%")
             if m.profit_factor < MIN_HIST_PF:
                 reasons.append(f"PF {m.profit_factor:.2f}")
+            rs = rs_ranks.get(ticker, 0)
+            if rs < RS_MIN:
+                reasons.append(f"RS rank {rs:.0f}")
             validated = not reasons
 
             bucket = candidates if validated else near_misses
@@ -157,6 +208,7 @@ def build():
             "hist_winrate": c["hist_winrate"], "hist_pf": c["hist_pf"],
             "hist_expectancy": c["hist_expectancy"], "hist_trades": c["hist_trades"],
             "combined": combined, "status": status, "reason": c.get("reason", ""),
+            "rs": rs_ranks.get(ticker, 0),
         }
 
     ranked = [_to_row(t, c, "VALIDATED") for t, c in candidates.items()]
@@ -169,6 +221,15 @@ def build():
     watch.sort(key=lambda x: x["combined"], reverse=True)
     n_fill = max(0, BOARD_MIN - len(ranked))
     ranked += watch[:max(n_fill, 2)]   # always show at least 2 watch names for context
+
+    # ── Earnings blackout: never hold a 1-2 week swing into earnings ─
+    print("Checking earnings dates for board candidates...")
+    for r in ranked[:20]:
+        d = _days_to_earnings(r["ticker"])
+        if d is not None and d <= EARNINGS_BLACKOUT_DAYS:
+            if r["status"] == "VALIDATED":
+                r["status"] = "WATCH"
+            r["reason"] = (r["reason"] + "; " if r["reason"] else "") + f"earnings in {d}d"
 
     # ── Position sizing (1% risk, hard-capped at MAX_RISK,
     #    position capped at 10% of account) ────────────────────────
@@ -207,6 +268,7 @@ def build():
           <td style="color:{wr_color};font-weight:700;">{r['hist_winrate']*100:.0f}%</td>
           <td style="color:#c9d1d9;">{r['hist_pf']:.2f}</td>
           <td style="color:#8b949e;">{r['hist_trades']}</td>
+          <td style="color:{'#3fb950' if r['rs'] >= 70 else '#8b949e'};">{r['rs']:.0f}</td>
           <td>{r['qty']}</td>
         </tr>"""
 
@@ -248,7 +310,8 @@ def build():
     {today.strftime('%A, %B %d, %Y')} at {datetime.now().strftime('%H:%M')} &nbsp;|&nbsp;
     <span class="badge" style="color:{rcolor};border-color:{rcolor};">{regime.replace('_',' ')}</span>
     &nbsp;Scale {scale_pct}% &nbsp;|&nbsp; Account {CUR}{ACCOUNT:,} &nbsp;|&nbsp;
-    Risk/trade {CUR}{risk_eur:,.0f} &nbsp;|&nbsp; <span style="color:var(--green);">LIVE + BACKTESTED</span>
+    Risk/trade {CUR}{risk_eur:,.0f} &nbsp;|&nbsp; Max open {MAX_OPEN} (heat {CUR}{risk_eur*MAX_OPEN:,.0f})
+    &nbsp;|&nbsp; <span style="color:var(--green);">LIVE + BACKTESTED</span>
   </div>
 </div>
 <div class="container">
@@ -258,15 +321,17 @@ def build():
     <table>
       <thead><tr>
         <th>Stock</th><th>Status</th><th>Conf.</th><th>Strategy</th><th>Entry</th><th>Stop</th>
-        <th>Target +10%</th><th>R:R</th><th>Hist Win%</th><th>Hist PF</th><th>#Trades</th><th>Qty</th>
+        <th>Target +10%</th><th>R:R</th><th>Hist Win%</th><th>Hist PF</th><th>#Trades</th><th>RS</th><th>Qty</th>
       </tr></thead>
       <tbody>{rows}</tbody>
     </table>
     <div class="legend">
       <strong>Conf.</strong> = confluence: ●●● three strategies agree, ●● two, ● one. More dots = higher conviction.<br>
       <strong>Hist Win%</strong> / <strong>Hist PF</strong> = how this exact strategy performed on THIS stock over 5 years (win rate & profit factor).<br>
-      <strong>Only stocks with historical win rate ≥50% and profit factor ≥1.2 are shown.</strong>
+      <strong>VALIDATED requires:</strong> historical win rate ≥50%, profit factor ≥1.2, RS rank ≥70 (stock outperforms 70% of universe),
+      and no earnings within {EARNINGS_BLACKOUT_DAYS} days. Exits: bank half at +1.5R, trail rest (ATR), time-stop after {MAX_HOLD_DAYS} days.<br>
       Target is +10% swing goal; R:R compares that to your stop risk. Qty sized to 1% account risk, capped at 10% position.
+      <strong>Never hold more than {MAX_OPEN} positions at once</strong> — total open risk stays ≤ {CUR}{risk_eur*MAX_OPEN:,.0f}.
     </div>
   </div>
   <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
