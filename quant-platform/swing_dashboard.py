@@ -19,6 +19,7 @@ Usage:
 """
 from __future__ import annotations
 
+import os
 import sys
 import webbrowser
 from datetime import date, datetime
@@ -345,9 +346,33 @@ def build():
     prefix = "india_" if MARKET == "INDIA" else ""
     out = reports / f"{prefix}swing_dashboard_{today.isoformat()}.html"
     out.write_text(html, encoding="utf-8")
+
+    # Markdown summary — phone-readable straight on GitHub
+    md = [f"# Swing Scan — {today.strftime('%A, %B %d, %Y')}",
+          "",
+          f"**Regime:** {regime.replace('_', ' ')} (scale {scale_pct}%)  ",
+          f"**Account:** {CUR}{ACCOUNT:,} | Risk/trade {CUR}{risk_eur:,.0f} | Max open {MAX_OPEN}",
+          "",
+          f"> {banner}",
+          "",
+          "| Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | Qty |",
+          "|---|---|---|---|---|---|---|---|---|---|---|"]
+    for r in ranked[:15]:
+        tk = r["ticker"].replace(".NS", "")
+        status = "✅" if r["status"] == "VALIDATED" else f"⚠ {r['reason']}"
+        md.append(f"| **{tk}** | {status} | {', '.join(r['strategies'])} "
+                  f"| {CUR}{r['entry']:,.2f} | {CUR}{r['stop']:,.2f} "
+                  f"| {CUR}{r['swing_target']:,.2f} | {r['rr_swing']:.1f}:1 "
+                  f"| {r['hist_winrate']*100:.0f}% | {r['hist_pf']:.2f} "
+                  f"| {r['rs']:.0f} | {r['qty']} |")
+    md += ["", f"_Generated {datetime.now().strftime('%Y-%m-%d %H:%M')} — research only, not financial advice._"]
+    (reports / f"{prefix}latest.md").write_text("\n".join(md), encoding="utf-8")
+    (reports / f"{prefix}latest.html").write_text(html, encoding="utf-8")
+
     print(f"\nDashboard: {out}")
     print(f"  {n_val} VALIDATED + {n_watch} WATCH names on the board")
-    webbrowser.open(out.resolve().as_uri())
+    if not os.getenv("CI"):
+        webbrowser.open(out.resolve().as_uri())
     return out
 
 

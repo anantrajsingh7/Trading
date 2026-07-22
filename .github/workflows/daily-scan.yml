@@ -1,0 +1,40 @@
+name: Daily Swing Scan
+
+on:
+  workflow_dispatch:        # run on demand (e.g. from phone via GitHub app)
+  schedule:
+    - cron: "7 8 * * 1-5"   # weekdays 08:07 UTC ≈ 10:07 Amsterdam (CEST)
+
+permissions:
+  contents: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/swing-trading-analysis-system-e439iw
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: >
+          pip install pandas numpy yfinance pyyaml python-dotenv scipy
+          tqdm sqlalchemy rich lxml pyarrow requests
+
+      - name: Run swing scan
+        working-directory: quant-platform
+        env:
+          CI: "true"
+        run: python swing_dashboard.py
+
+      - name: Commit latest report
+        run: |
+          git config user.name "swing-scan-bot"
+          git config user.email "actions@github.com"
+          git add -f quant-platform/reports/latest.md quant-platform/reports/latest.html
+          git diff --cached --quiet || git commit -m "Daily swing scan report [skip ci]"
+          git push
