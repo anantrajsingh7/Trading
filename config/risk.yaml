@@ -1,0 +1,105 @@
+# =============================================================================
+# Phase 5 + Phase 10: execution cost model and risk management
+# =============================================================================
+
+# --- Phase 5: execution scenarios -------------------------------------------
+# Fees default to Bitvavo's published tier-0 taker/maker rates. When an API key
+# is configured the client fetches the ACCOUNT-SPECIFIC fees and those override
+# these fallbacks (recorded in the run manifest either way).
+fees:
+  fallback_taker_bps: 25.0     # 0.25 %
+  fallback_maker_bps: 15.0     # 0.15 %
+  use_account_fees_when_available: true
+
+execution_scenarios:
+  optimistic:
+    description: "Favourable but not impossible: tight spread, low slippage, fast fills."
+    half_spread_bps: 2.5
+    slippage_base_bps: 2.0
+    slippage_vol_coefficient: 0.10   # extra bps per 1 bp of 30m realised vol
+    slippage_illiquidity_coefficient: 0.5
+    latency_seconds: 2
+    fill_probability_market: 1.00
+    fill_probability_limit: 0.90
+    partial_fill_probability: 0.00
+    min_partial_fill_fraction: 1.00
+    stop_gap_extra_slippage_bps: 5.0
+    max_participation_of_bar_volume: 0.10
+
+  realistic:
+    description: "Headline scenario. All reported headline numbers use this."
+    half_spread_bps: 7.5
+    slippage_base_bps: 6.0
+    slippage_vol_coefficient: 0.25
+    slippage_illiquidity_coefficient: 1.5
+    latency_seconds: 10
+    fill_probability_market: 0.98
+    fill_probability_limit: 0.60
+    partial_fill_probability: 0.15
+    min_partial_fill_fraction: 0.50
+    stop_gap_extra_slippage_bps: 25.0
+    max_participation_of_bar_volume: 0.05
+
+  stress:
+    description: "Adverse but plausible: wide spreads, thin books, missed fills."
+    half_spread_bps: 20.0
+    slippage_base_bps: 15.0
+    slippage_vol_coefficient: 0.60
+    slippage_illiquidity_coefficient: 3.0
+    latency_seconds: 30
+    fill_probability_market: 0.92
+    fill_probability_limit: 0.35
+    partial_fill_probability: 0.35
+    min_partial_fill_fraction: 0.30
+    stop_gap_extra_slippage_bps: 75.0
+    max_participation_of_bar_volume: 0.02
+
+headline_scenario: realistic
+
+# Market micro-rules. Real values are fetched from /v2/markets and cached; these
+# are conservative fallbacks used only when the cache is unavailable.
+market_rules_fallback:
+  min_order_quote_eur: 5.0
+  price_precision_significant_digits: 5
+  amount_decimals: 8
+
+# --- Phase 10: risk management ----------------------------------------------
+portfolio:
+  starting_equity_eur: 10000.0
+  currency: EUR
+
+sizing:
+  method: atr_risk            # fixed_eur | fixed_pct | vol_target | atr_risk
+  fixed_eur_amount: 250.0
+  fixed_pct_of_equity: 0.02
+  vol_target_annual: 0.35
+  atr_risk:
+    risk_per_trade_pct: 0.0035   # 0.35 % of equity at risk per trade
+    atr_period_minutes: 60
+    atr_stop_multiple: 1.5
+  # Never let one position exceed this share of equity regardless of method.
+  max_position_pct_of_equity: 0.15
+  # Never take more than this share of the market's recent per-minute volume.
+  max_participation_of_recent_volume: 0.05
+
+limits:
+  risk_per_trade_pct_min: 0.0025
+  risk_per_trade_pct_max: 0.0050
+  max_total_open_risk_pct: 0.02
+  max_concurrent_positions: 3
+  max_exposure_per_coin_pct: 0.15
+  max_daily_loss_pct: 0.03
+  max_weekly_loss_pct: 0.06
+  max_drawdown_pause_pct: 0.10
+  allow_averaging_down: false
+  allow_martingale: false
+  allow_leverage: false
+  allow_borrowing: false
+  # Reject an entry if price has already run this far past the tested entry zone.
+  max_chase_above_entry_zone_pct: 0.005
+
+circuit_breakers:
+  pause_on_slippage_bps_above: 100.0
+  pause_on_consecutive_api_errors: 5
+  pause_on_stale_data_seconds: 120
+  pause_minutes_after_trip: 60

@@ -1,0 +1,103 @@
+# =============================================================================
+# Research configuration - Phases 1, 2, 6, 8, 9
+# All times are UTC. The dashboard converts to Europe/Amsterdam for display only.
+# =============================================================================
+
+paths:
+  data_dir: data
+  raw_dir: data/raw
+  processed_dir: data/processed
+  results_dir: data/results
+
+# --- Phase 1: data acquisition ----------------------------------------------
+data:
+  quote_currency: EUR
+  # Intervals to download. 1m is the research base; the rest are resampled from
+  # 1m locally so that every derived series is internally consistent.
+  base_interval: 1m
+  extra_intervals: [5m, 15m, 1h, 1d]
+  # Bitvavo returns at most `max_candles_per_request` candles per call.
+  max_candles_per_request: 1440
+  # How far back to attempt. Bitvavo's public candle history for 1m data is
+  # limited (see docs/assumptions_and_limitations.md); the downloader records the
+  # true first timestamp actually returned per market instead of assuming it.
+  history_start_utc: "2021-01-01T00:00:00Z"
+  # Markets that must always be present (regime + benchmark references).
+  reference_markets: [BTC-EUR, ETH-EUR]
+  # Include markets that are no longer trading if local raw data exists.
+  # Excluding them would create survivorship bias.
+  include_inactive_markets: true
+
+# --- Universe filters (applied per-event using only past information) --------
+universe:
+  # Rolling 30-day median EUR quote volume required to consider a market.
+  min_median_daily_quote_volume_eur: 25000
+  # Minimum number of days of history before a market becomes eligible.
+  min_history_days: 30
+  # Markets excluded entirely (stablecoins/fiat proxies have no momentum meaning).
+  exclude_bases: [EURC, USDC, USDT, DAI, PYUSD, EURT, TUSD]
+
+# --- Phase 2: event definition ----------------------------------------------
+events:
+  # Rolling look-back windows in minutes for the "rose X% in N minutes" test.
+  lookback_minutes: [30, 60, 90, 120, 180, 240]
+  # Return thresholds (fractional, i.e. 0.10 == +10%).
+  thresholds: [0.05, 0.075, 0.10, 0.12, 0.15, 0.20]
+  # The primary hypothesis under test: +10% to +12% over 120-180 minutes.
+  primary:
+    lookback_minutes: 120
+    threshold: 0.10
+  # De-duplication so that one rally does not create dozens of overlapping events.
+  cooldown_minutes: 240          # no new event for the same market within this window
+  dedup_mode: first_touch        # first_touch | peak_of_cluster
+  # Forward horizons (minutes) evaluated in the descriptive event study.
+  forward_horizons: [15, 30, 60, 120, 240, 480, 1440, 2880]
+  # Data-quality gate applied at event time (past information only).
+  max_missing_candle_fraction_lookback: 0.20
+  require_nonzero_volume_candles: 3
+
+# --- Phase 6: chronological splits ------------------------------------------
+splits:
+  mode: chronological_fraction
+  train_fraction: 0.50
+  validation_fraction: 0.25
+  test_fraction: 0.25
+  # Gap between splits (minutes) so that trades cannot straddle a boundary.
+  embargo_minutes: 2880
+  # Set to true only once, for the single final evaluation. Guarded in code.
+  unlock_test_set: false
+
+walk_forward:
+  train_months: 12
+  test_months: 3
+  step_months: 3
+  min_train_events: 100
+
+# --- Phase 9: regime definitions (causal, past-information only) -------------
+regimes:
+  btc_trend:
+    fast_ema_days: 10
+    slow_ema_days: 50
+    sideways_band: 0.02        # |fast/slow - 1| below this == sideways
+  volatility:
+    lookback_days: 30
+    high_quantile: 0.70        # quantile of the trailing expanding distribution
+    low_quantile: 0.30
+  breadth:
+    lookback_minutes: 1440
+    broad_threshold: 0.60      # fraction of markets positive -> broad momentum
+    narrow_threshold: 0.40
+
+# --- Phase 8: robustness -----------------------------------------------------
+robustness:
+  bootstrap_iterations: 2000
+  monte_carlo_iterations: 2000
+  permutation_iterations: 1000
+  random_seed: 20260802
+  min_independent_trades: 100
+  max_single_coin_profit_share: 0.40
+  max_single_month_profit_share: 0.40
+
+logging:
+  level: INFO
+  file: logs/research.log

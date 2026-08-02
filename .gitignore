@@ -1,0 +1,44 @@
+# --- Secrets: never commit credentials ---
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+secrets/
+
+# --- Data: raw/processed/results are reproducible artefacts, not source ---
+# (trailing /* rather than / so the .gitkeep negation below can apply)
+data/raw/*
+data/processed/*
+data/results/*
+data/synthetic/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/results/.gitkeep
+!data/synthetic/.gitkeep
+
+# --- Paper trading state / logs ---
+logs/
+*.log
+state/
+paper_state/
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store

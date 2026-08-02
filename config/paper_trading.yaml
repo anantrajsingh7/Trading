@@ -1,0 +1,70 @@
+# =============================================================================
+# Phase 11 + 13: live scanner, paper trading and alerts
+# =============================================================================
+
+# --- HARD SAFETY GATE --------------------------------------------------------
+# Live order execution requires ALL THREE of:
+#   1. live_trading.enabled: true            (here)
+#   2. ALLOW_LIVE_TRADING=true               (environment)
+#   3. --i-understand-live-trading           (explicit CLI flag)
+# Any missing condition => paper mode. The code has no other path to send orders.
+live_trading:
+  enabled: false
+  # Even when enabled, these permissions must never be requested from the API key.
+  forbidden_api_permissions: [withdraw]
+
+mode: paper                     # paper | live (live additionally gated above)
+
+scanner:
+  quote_currency: EUR
+  poll_seconds: 30
+  use_websocket: true
+  # Detection parameters. These MUST match the parameters that survived
+  # out-of-sample validation; the scanner refuses to start if they were not
+  # loaded from an approved strategy card in data/results/approved_strategy.json.
+  require_approved_strategy_card: true
+  approved_strategy_card: data/results/approved_strategy.json
+
+  # Universe filters evaluated live.
+  min_median_daily_quote_volume_eur: 25000
+  max_spread_bps: 60
+  min_book_depth_eur_within_50bps: 2000
+  exclude_bases: [EURC, USDC, USDT, DAI, PYUSD, EURT, TUSD]
+
+  # Signal hygiene.
+  signal_ttl_minutes: 60          # after this a signal expires unfilled
+  duplicate_suppression_minutes: 240
+  max_signals_per_market_per_day: 3
+  # A setup is "extended" (and rejected) when price is already this far above the
+  # modelled entry zone.
+  extended_above_entry_zone_pct: 0.005
+
+  # Data freshness gate: no signals from stale or incomplete data.
+  max_data_age_seconds: 90
+  min_candles_in_lookback_fraction: 0.80
+
+signal_quality:
+  min_reward_to_risk: 1.5
+  min_historical_sample: 50       # below this the signal is flagged LOW_EVIDENCE
+  confidence_bands:
+    high: { min_sample: 200, min_net_expectancy_bps: 20 }
+    medium: { min_sample: 100, min_net_expectancy_bps: 10 }
+    low: { min_sample: 50, min_net_expectancy_bps: 0 }
+
+paper:
+  state_dir: data/results/paper
+  execution_scenario: realistic   # from config/risk.yaml
+  # Simulated fills use the same execution model as the backtest so that paper
+  # results remain comparable with research results.
+  record_every_signal: true       # including rejected and expired ones
+
+alerts:
+  enabled: false
+  channels: []                    # any of: telegram, discord, email
+  # Credentials come from environment variables only (see .env.example).
+  send_informational_event_alerts: true   # "event detected, no valid entry"
+  min_seconds_between_alerts: 60
+  quiet_hours_amsterdam: []       # e.g. ["23:00-07:00"]
+
+display:
+  timezone: Europe/Amsterdam      # display only; all internal state is UTC
