@@ -17,23 +17,72 @@ rather than dressing up a marginal result.
 
 ---
 
-## Status of the research
+## Result: the hypothesis is rejected
 
-**No empirical result has been produced yet, because no market data has been
-downloaded.** The environment this repository was built in has no network route
-to `api.bitvavo.com` (the egress proxy returns HTTP 403 on CONNECT for every
-exchange host). Rather than substitute another exchange's data or invent
-figures, the pipeline was built complete and verified end-to-end on clearly
-labelled synthetic series.
+**Run date:** 2026-08-03 · **Data:** 40 Bitvavo EUR markets, 1-minute candles,
+2025-01-01 → 2026-08-02 (12.7 M bars) · **Events:** 495 at the primary
+specification (+10% / 120 min), 21,751 across the full 36-spec grid.
 
-To produce real results, run the pipeline from a machine that can reach Bitvavo:
+### Phase 2 — descriptive event study
+
+Mean forward return after a qualifying event, measured from the open of the next
+bar, **gross of all costs**:
+
+| Horizon | Mean | Median | Hit rate |
+|---|---|---|---|
+| 15 min | −0.13% | −0.15% | 45.7% |
+| 1 h | −0.11% | −0.26% | 46.3% |
+| 2 h | −0.20% | −0.32% | 46.5% |
+| 8 h | −0.19% | −0.31% | 48.1% |
+| 24 h | −0.55% | −1.25% | 45.3% |
+| 48 h | −0.59% | −2.27% | 42.8% |
+
+Negative at every horizon, hit rate below 50% at every horizon, and the median
+below the mean throughout — most events bleed while a few rip, which is the
+distribution that makes this pattern feel real to a human observer.
+
+On the primary specification (n = 495) a moving-block bootstrap puts only the
+30-minute horizon outside zero, and on the **negative** side (95% CI −0.77% to
+−0.06%). The honest reading is *no positive continuation*, with weak evidence of
+slight negative drift shortly after the event.
+
+### Phases 3–8 — strategies and costs
+
+All **51 configurations** (17 entry strategies × 3 exit policies) returned
+negative net expectancy on training data. Every profit factor was below 1.0.
+
+| | |
+|---|---|
+| Best configuration (consolidation breakout) | **−0.45%** per trade |
+| Selected candidate on validation | **−1.79%** per trade |
+| Same candidate under stress execution | **−2.45%** per trade |
+
+Mean reversion after the spike (Strategy G) also failed, at −0.67% per trade, so
+the exhaustion hypothesis is closed at this timescale too.
+
+**Verdict: rejected on five independent criteria** — insufficient independent
+trades, negative net expectancy after costs, 62% of gross profit from one coin,
+78% from one month, and negative expectancy under stress. The untouched test set
+was never opened, because nothing survived validation to justify opening it.
+
+Full record: `data/results/research_report.md`, `report.html`,
+`rejected_strategies.md`, `strategy_comparison.csv`.
+
+### Why it fails
+
+The realistic round-trip cost is **77 bps**. Gross forward returns are around
+−20 bps at the 2-hour horizon. No amount of entry timing, exit tuning or
+filtering closes a gap that starts on the wrong side of zero. High turnover is
+the structural problem: ~200 round trips a year burns roughly 15% of capital in
+costs alone.
+
+### Reproducing this
 
 ```bash
-python scripts/download_history.py --smoke-test          # verify connectivity
-python scripts/download_history.py --markets top:40      # download
-python scripts/run_research.py                           # Phase 2 event study
-python scripts/run_backtest.py                           # Phases 3–8
-python scripts/run_walk_forward.py                       # rolling validation
+python scripts/download_history.py --smoke-test
+python scripts/download_history.py --markets top:40 --interval 1m --history-start 2025-01-01T00:00:00Z
+python scripts/run_research.py
+python scripts/run_backtest.py --quick
 ```
 
 Everything under `data/results/synthetic/` was generated from artificial data by
@@ -156,7 +205,7 @@ alongside.
 | limit fill probability (when touched) | 90% | 60% | 35% |
 | partial-fill probability | 0% | 15% | 35% |
 | max share of bar volume | 10% | 5% | 2% |
-| minimum round-trip cost | 59 bps | **89 bps** | 170 bps |
+| minimum round-trip cost | 59 bps | **77 bps** | 120 bps |
 
 That last row is the bar a strategy must clear before it earns anything. Also
 modelled: gap-through-stop fills at the bar open plus extra slippage, capacity

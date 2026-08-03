@@ -63,7 +63,7 @@ This step produces **no strategy**. It answers, descriptively:
 
 Forward returns are measured from the **open of the bar after the event bar** —
 the first price a trader could realistically have transacted at. These figures
-are **gross**. The minimum round-trip cost in the realistic scenario is ~89 bps;
+are **gross**. The minimum round-trip cost in the realistic scenario is 77 bps;
 any mean forward return below that is not a trading opportunity, whatever its
 t-statistic.
 
