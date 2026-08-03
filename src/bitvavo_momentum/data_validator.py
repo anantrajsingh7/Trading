@@ -71,12 +71,24 @@ def validate_candles(
     frame: pd.DataFrame,
     market: str,
     interval: str = "1m",
-    max_missing_fraction: float = 0.35,
+    max_missing_fraction: float = 0.95,
     max_zero_volume_fraction: float = 0.60,
     max_plausible_bar_return: float = 5.0,
     min_rows: int = 500,
 ) -> ValidationResult:
-    """Validate one OHLCV dataset. Never mutates the input."""
+    """Validate one OHLCV dataset. Never mutates the input.
+
+    On ``max_missing_fraction``: Bitvavo omits a 1-minute candle entirely when no
+    trades occurred in that minute, so the missing fraction is a **liquidity
+    measurement**, not a corruption signal. Real EUR mid-caps routinely sit at
+    40-70% and small caps above 85%. Failing a dataset on that basis would throw
+    away exactly the volatile markets the momentum hypothesis is about.
+
+    Thin markets are therefore excluded by the mechanisms designed for it - the
+    trailing-liquidity eligibility mask and the per-event look-back gate (default
+    20% missing) - and this threshold is set high enough to catch only datasets
+    that are essentially empty.
+    """
     notes: list[str] = []
 
     if frame.empty:
@@ -168,7 +180,16 @@ def validate_candles(
         notes.append(f"only {len(data)} rows (< {min_rows})")
     if missing_fraction > max_missing_fraction:
         status = FAIL
-        notes.append(f"missing fraction {missing_fraction:.2%} above limit {max_missing_fraction:.0%}")
+        notes.append(
+            f"missing fraction {missing_fraction:.2%} above limit {max_missing_fraction:.0%} - "
+            "effectively no trading"
+        )
+    elif missing_fraction > 0.50:
+        status = WARN if status == PASS else status
+        notes.append(
+            f"{n_missing} no-trade minutes ({missing_fraction:.2%}) - thin market; usable, but few "
+            "look-back windows will pass the per-event data-quality gate"
+        )
     elif missing_fraction > 0:
         notes.append(f"{n_missing} missing bars ({missing_fraction:.2%}) - treated as no-trade gaps")
     if zero_volume_fraction > max_zero_volume_fraction:

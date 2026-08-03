@@ -138,10 +138,13 @@ def build_dataset(
         return dataset
 
     # -- validation ---------------------------------------------------------
+    max_missing = float(config.get("research", "data", "max_missing_fraction", default=0.95))
     validations = []
     usable: dict[str, pd.DataFrame] = {}
     for market, frame in candles.items():
-        result = validate_candles(frame, market, interval, min_rows=200)
+        result = validate_candles(
+            frame, market, interval, min_rows=200, max_missing_fraction=max_missing
+        )
         validations.append(result.to_dict())
         if result.is_usable:
             usable[market] = frame

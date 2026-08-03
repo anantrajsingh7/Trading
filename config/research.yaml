@@ -27,6 +27,12 @@ data:
   # Include markets that are no longer trading if local raw data exists.
   # Excluding them would create survivorship bias.
   include_inactive_markets: true
+  # Bitvavo OMITS a 1m candle when no trades occurred, so the missing fraction is
+  # a liquidity measurement, not corruption: real EUR mid-caps sit at 40-70% and
+  # small caps above 85%. This threshold therefore only rejects datasets that are
+  # essentially empty; thin markets are excluded instead by the trailing-liquidity
+  # eligibility mask and by events.max_missing_candle_fraction_lookback.
+  max_missing_fraction: 0.95
 
 # --- Universe filters (applied per-event using only past information) --------
 universe:

@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
-from bitvavo_momentum.data_validator import FAIL, PASS, reindex_to_grid, validate_candles
+from bitvavo_momentum.data_validator import FAIL, PASS, WARN, reindex_to_grid, validate_candles
 
 
 def _frame(n: int = 1000, start: str = "2024-01-01T00:00:00Z") -> pd.DataFrame:
@@ -56,10 +56,26 @@ def test_non_positive_price_fails():
     assert result.status == FAIL
 
 
-def test_mostly_missing_dataset_fails():
+def test_thin_market_is_warned_but_kept():
+    """Bitvavo omits candles for minutes with no trades.
+
+    An 80%-missing 1-minute series is a thin market, not corrupt data, and real
+    EUR mid-caps sit in that range. Failing it here would delete exactly the
+    volatile markets the momentum hypothesis is about; thin markets are instead
+    excluded by the liquidity mask and the per-event look-back gate.
+    """
     frame = _frame(2000).iloc[::5].reset_index(drop=True)  # 80% of bars absent
     result = validate_candles(frame, "X-EUR", "1m", min_rows=100)
+    assert result.status == WARN
+    assert result.is_usable
+    assert "thin market" in "; ".join(result.notes)
+
+
+def test_essentially_empty_dataset_fails():
+    frame = _frame(20000).iloc[::99].reset_index(drop=True)  # ~99% of bars absent
+    result = validate_candles(frame, "X-EUR", "1m", min_rows=100)
     assert result.status == FAIL
+    assert not result.is_usable
 
 
 def test_reindex_marks_gaps_without_inventing_prices():
