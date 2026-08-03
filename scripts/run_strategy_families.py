@@ -26,6 +26,7 @@ from __future__ import annotations
 
 import argparse
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -170,12 +171,19 @@ def main() -> int:  # noqa: PLR0915 - a linear protocol reads better in one plac
     rows: list[dict] = []
     total = len(strategies) * len(policies)
     done = 0
+    started = time.time()
     for strategy in strategies:
+        n_signals = int((train["event_spec"] == strategy.name).sum())
+        log.info("[%d/%d] %s: %d train signals x %d exit policies",
+                 done + 1, total, strategy.name, n_signals, len(policies))
         for policy in policies:
             result = evaluate(train, strategy.name, policy, headline, args.holding_minutes)
             done += 1
-            if done % 10 == 0:
-                log.info("Evaluated %d/%d combinations", done, total)
+            if done % 5 == 0:
+                elapsed = time.time() - started
+                rate = elapsed / max(1, done)
+                log.info("  %d/%d combinations (%.0fs elapsed, ~%.0fs remaining)",
+                         done, total, elapsed, rate * (total - done))
             if result is None:
                 continue
             row = M.compute_trade_metrics(result.trades, starting_equity)

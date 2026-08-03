@@ -194,6 +194,7 @@ class RiskManager:
         self.realised_pnl_by_week: dict[pd.Timestamp, float] = {}
         self.paused_until: pd.Timestamp | None = None
         self.pause_reason: str = ""
+        self.pause_count = 0
         self.consecutive_api_errors = 0
 
     # -- state -----------------------------------------------------------------
@@ -239,9 +240,22 @@ class RiskManager:
             self._pause(now, 24 * 60, f"drawdown {self.current_drawdown:.2%} beyond pause threshold")
 
     def _pause(self, now: pd.Timestamp, minutes: float, reason: str) -> None:
-        self.paused_until = pd.Timestamp(now) + pd.Timedelta(minutes=minutes)
+        """Enter (or extend) a trading pause.
+
+        Only the *transition* into a paused state is logged at WARNING. A
+        sustained drawdown fires this on every subsequent exit, which produced
+        thousands of identical lines per backtest and made console I/O the
+        dominant cost of the run. Extensions are counted and logged at DEBUG.
+        """
+        now = pd.Timestamp(now)
+        was_paused = self.paused_until is not None and now < self.paused_until
+        self.paused_until = now + pd.Timedelta(minutes=minutes)
         self.pause_reason = reason
-        log.warning("Trading paused until %s: %s", self.paused_until, reason)
+        self.pause_count += 1
+        if was_paused:
+            log.debug("Pause extended to %s: %s", self.paused_until, reason)
+        else:
+            log.warning("Trading paused until %s: %s", self.paused_until, reason)
 
     def report_api_error(self, now: pd.Timestamp) -> None:
         self.consecutive_api_errors += 1
@@ -343,6 +357,7 @@ class RiskManager:
             "open_risk_pct": self.open_risk_eur / self.equity if self.equity else 0.0,
             "paused_until": self.paused_until,
             "pause_reason": self.pause_reason,
+            "pause_count": self.pause_count,
         }
 
 
