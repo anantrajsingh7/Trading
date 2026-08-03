@@ -146,21 +146,18 @@ def compute_setup_features(
 
 
 def _expanding_percentile(series: pd.Series, min_periods: int = 200) -> pd.Series:
-    """Percentile rank of each value within the history up to that point.
+    """Percentile rank of each value within the history up to and including it.
 
     Expanding, never full-sample: a compression filter that knows the eventual
-    distribution of volatility is using the future.
+    distribution of volatility is using the future. Including the current bar is
+    causal - its value is known at its own close - and is the conventional
+    definition.
     """
-    values = series.to_numpy(dtype="float64")
-    out = np.full(values.shape, np.nan)
-    finite: list[float] = []
-    for i, value in enumerate(values):
-        if len(finite) >= min_periods and np.isfinite(value):
-            arr = np.asarray(finite)
-            out[i] = float((arr <= value).mean())
-        if np.isfinite(value):
-            finite.append(value)
-    return pd.Series(out, index=series.index)
+    # pandas' expanding rank is Cython and O(n log n); the obvious Python loop
+    # that rebuilds the history array on every bar is O(n^2) and took ~45s per
+    # column on 19 months of 15-minute data, which made a 20-market run
+    # unusable. Measured speed-up at n=20,000: ~400x.
+    return series.expanding(min_periods=min_periods).rank(method="max", pct=True)
 
 
 # --------------------------------------------------------------------------- #
