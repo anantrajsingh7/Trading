@@ -1,0 +1,129 @@
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Swing Dashboard | 2026-08-03</title>
+<style>
+  :root{--bg:#0d1117;--card:#161b22;--border:#21262d;--green:#3fb950;--red:#f85149;
+    --yellow:#e3b341;--blue:#58a6ff;--text:#c9d1d9;--muted:#8b949e;--white:#f0f6fc;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,Segoe UI,monospace;font-size:14px;}
+  .header{background:linear-gradient(135deg,#1a1f2e,#0d1117);border-bottom:1px solid var(--border);padding:20px 32px;}
+  .header h1{font-size:22px;color:var(--white);}
+  .badge{display:inline-block;padding:4px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1px solid;}
+  .container{max-width:1500px;margin:0 auto;padding:24px 32px;}
+  .section-title{font-size:13px;font-weight:700;color:var(--muted);letter-spacing:2px;text-transform:uppercase;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid var(--border);}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:16px;margin-bottom:24px;}
+  table{width:100%;border-collapse:collapse;font-size:13px;}
+  th{text-align:left;padding:8px 10px;color:var(--muted);font-size:10px;letter-spacing:1px;text-transform:uppercase;border-bottom:1px solid var(--border);}
+  td{padding:10px;border-bottom:1px solid rgba(33,38,45,0.5);}
+  .alert{background:rgba(63,185,80,0.08);border:1px solid #3fb950;border-radius:6px;padding:12px 16px;margin-bottom:20px;color:#3fb950;font-weight:700;}
+  .legend{color:var(--muted);font-size:11px;margin-top:12px;line-height:1.6;}
+</style></head><body>
+<div class="header">
+  <h1>📈 Swing Trader Dashboard — Validated Setups</h1>
+  <div style="color:var(--muted);margin-top:6px;font-size:13px;">
+    Monday, August 03, 2026 at 14:06 &nbsp;|&nbsp;
+    <span class="badge" style="color:#3fb950;border-color:#3fb950;">BULL STRONG</span>
+    &nbsp;Scale 100% &nbsp;|&nbsp; Account €30,000 &nbsp;|&nbsp;
+    Risk/trade €300 &nbsp;|&nbsp; Max open 5 (heat €1,500)
+    &nbsp;|&nbsp; <span style="color:var(--green);">LIVE + BACKTESTED</span>
+  </div>
+</div>
+<div class="container">
+  <div class="alert">⚡ 2 VALIDATED setup(s) + 3 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.</div>
+  <div class="section-title">Today's Validated Swing Setups</div>
+  <div class="card">
+    <table>
+      <thead><tr>
+        <th>Stock</th><th>Status</th><th>Conf.</th><th>Strategy</th><th>Entry</th><th>Stop</th>
+        <th>Target +10%</th><th>R:R</th><th>Hist Win%</th><th>Hist PF</th><th>#Trades</th><th>RS</th><th>Qty</th>
+      </tr></thead>
+      <tbody>
+        <tr style="">
+          <td><strong style="color:#f0f6fc;">WELL</strong></td>
+          <td><span style='color:#3fb950;font-weight:700;'>✔ VALIDATED</span></td>
+          <td style="text-align:center;"><span style='color:#8b949e;'>●</span></td>
+          <td style="color:#58a6ff;font-size:12px;">ema pullback</td>
+          <td>€234.54</td>
+          <td style="color:#f85149;">€221.75</td>
+          <td style="color:#3fb950;">€257.99</td>
+          <td style="color:#3fb950;font-weight:700;">1.8:1</td>
+          <td style="color:#58a6ff;font-weight:700;">58%</td>
+          <td style="color:#c9d1d9;">4.28</td>
+          <td style="color:#8b949e;">24</td>
+          <td style="color:#3fb950;">75</td>
+          <td>12</td>
+        </tr>
+        <tr style="">
+          <td><strong style="color:#f0f6fc;">FITB</strong></td>
+          <td><span style='color:#3fb950;font-weight:700;'>✔ VALIDATED</span></td>
+          <td style="text-align:center;"><span style='color:#8b949e;'>●</span></td>
+          <td style="color:#58a6ff;font-size:12px;">ema pullback</td>
+          <td>€56.99</td>
+          <td style="color:#f85149;">€55.11</td>
+          <td style="color:#3fb950;">€62.69</td>
+          <td style="color:#3fb950;font-weight:700;">3.0:1</td>
+          <td style="color:#58a6ff;font-weight:700;">50%</td>
+          <td style="color:#c9d1d9;">1.70</td>
+          <td style="color:#8b949e;">16</td>
+          <td style="color:#3fb950;">79</td>
+          <td>52</td>
+        </tr>
+        <tr style="opacity:0.75;">
+          <td><strong style="color:#f0f6fc;">KIM</strong></td>
+          <td><span style='color:#e3b341;font-weight:700;'>⚠ WATCH</span><br><span style='color:#8b949e;font-size:10px;'>earnings in 1d</span></td>
+          <td style="text-align:center;"><span style='color:#8b949e;'>●</span></td>
+          <td style="color:#58a6ff;font-size:12px;">ema pullback</td>
+          <td>€25.70</td>
+          <td style="color:#f85149;">€24.91</td>
+          <td style="color:#3fb950;">€28.28</td>
+          <td style="color:#3fb950;font-weight:700;">3.2:1</td>
+          <td style="color:#58a6ff;font-weight:700;">55%</td>
+          <td style="color:#c9d1d9;">1.50</td>
+          <td style="color:#8b949e;">20</td>
+          <td style="color:#3fb950;">72</td>
+          <td>116</td>
+        </tr>
+        <tr style="opacity:0.75;">
+          <td><strong style="color:#f0f6fc;">EG</strong></td>
+          <td><span style='color:#e3b341;font-weight:700;'>⚠ WATCH</span><br><span style='color:#8b949e;font-size:10px;'>win rate 36%; PF 0.63; RS rank 59</span></td>
+          <td style="text-align:center;"><span style='color:#8b949e;'>●</span></td>
+          <td style="color:#58a6ff;font-size:12px;">ema pullback</td>
+          <td>€377.96</td>
+          <td style="color:#f85149;">€364.58</td>
+          <td style="color:#3fb950;">€415.76</td>
+          <td style="color:#3fb950;font-weight:700;">2.8:1</td>
+          <td style="color:#e3b341;font-weight:700;">36%</td>
+          <td style="color:#c9d1d9;">0.63</td>
+          <td style="color:#8b949e;">28</td>
+          <td style="color:#8b949e;">59</td>
+          <td>7</td>
+        </tr>
+        <tr style="opacity:0.75;">
+          <td><strong style="color:#f0f6fc;">URI</strong></td>
+          <td><span style='color:#e3b341;font-weight:700;'>⚠ WATCH</span><br><span style='color:#8b949e;font-size:10px;'>win rate 33%</span></td>
+          <td style="text-align:center;"><span style='color:#8b949e;'>●</span></td>
+          <td style="color:#58a6ff;font-size:12px;">ema pullback</td>
+          <td>€1,081.85</td>
+          <td style="color:#f85149;">€1,045.62</td>
+          <td style="color:#3fb950;">€1,190.03</td>
+          <td style="color:#3fb950;font-weight:700;">3.0:1</td>
+          <td style="color:#e3b341;font-weight:700;">33%</td>
+          <td style="color:#c9d1d9;">2.34</td>
+          <td style="color:#8b949e;">18</td>
+          <td style="color:#3fb950;">79</td>
+          <td>2</td>
+        </tr></tbody>
+    </table>
+    <div class="legend">
+      <strong>Conf.</strong> = confluence: ●●● three strategies agree, ●● two, ● one. More dots = higher conviction.<br>
+      <strong>Hist Win%</strong> / <strong>Hist PF</strong> = how this exact strategy performed on THIS stock over 5 years (win rate & profit factor).<br>
+      <strong>VALIDATED requires:</strong> historical win rate ≥50%, profit factor ≥1.2, RS rank ≥70 (stock outperforms 70% of universe),
+      and no earnings within 14 days. Exit: ATR trailing stop — let winners run (A/B tested: beats fixed targets and partial banking).<br>
+      Target is +10% swing goal; R:R compares that to your stop risk. Qty sized to 1% account risk, capped at 10% position.
+      <strong>Never hold more than 5 positions at once</strong> — total open risk stays ≤ €1,500.
+    </div>
+  </div>
+  <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
+    Quant Platform — research only, not financial advice — 2026-08-03 14:06:57
+  </div>
+</div></body></html>
