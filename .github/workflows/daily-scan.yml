@@ -36,5 +36,13 @@ jobs:
           git config user.name "swing-scan-bot"
           git config user.email "actions@github.com"
           git add -f quant-platform/reports/latest.md quant-platform/reports/latest.html
-          git diff --cached --quiet || git commit -m "Daily swing scan report [skip ci]"
+          git diff --cached --quiet && exit 0
+          git commit -m "Daily swing scan report [skip ci]"
+          # Retry push: if a concurrent run pushed first, rebase keeping
+          # our freshly generated report (-X theirs = our commit in rebase)
+          for i in 1 2 3; do
+            git push && exit 0
+            sleep 5
+            git pull --rebase -X theirs origin claude/swing-trading-analysis-system-e439iw
+          done
           git push
