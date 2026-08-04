@@ -1,0 +1,56 @@
+name: Strategy Research Comparison
+
+on:
+  workflow_dispatch:        # research runs are manual only
+
+permissions:
+  contents: write
+
+jobs:
+  compare:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/swing-trading-analysis-system-e439iw
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: >
+          pip install pandas numpy yfinance pyyaml python-dotenv scipy
+          tqdm sqlalchemy rich lxml pyarrow requests pytest
+
+      - name: Run unit tests first
+        working-directory: quant-platform
+        run: python -m pytest tests/ -q
+
+      - name: Run strategy comparison
+        working-directory: quant-platform
+        env:
+          CI: "true"
+        run: python research/run_comparison.py
+
+      - name: Commit research reports
+        run: |
+          git config user.name "research-bot"
+          git config user.email "actions@github.com"
+          git add -f quant-platform/reports/enhanced_ema_pullback_results.md \
+                     quant-platform/reports/strategy_comparison.md \
+                     quant-platform/reports/strategy_comparison.csv \
+                     quant-platform/reports/walk_forward_strategy_comparison.csv \
+                     quant-platform/reports/regime_strategy_comparison.csv \
+                     quant-platform/reports/execution_cost_comparison.csv \
+                     quant-platform/reports/parameter_stability_enhanced_ema.csv \
+                     quant-platform/reports/enhanced_ema_trade_log.csv
+          git diff --cached --quiet && exit 0
+          git commit -m "Strategy research comparison results [skip ci]"
+          for i in 1 2 3; do
+            git push && exit 0
+            sleep 5
+            git pull --rebase -X theirs origin claude/swing-trading-analysis-system-e439iw
+          done
+          git push
