@@ -41,7 +41,9 @@ class Backtester:
 
     def __init__(self, strategy: BaseStrategy, cfg: dict,
                  exit_mode: str = "targets", trail_atr_mult: float = 2.5,
-                 max_hold_days: int | None = None):
+                 max_hold_days: int | None = None,
+                 stop_pct: float | None = None,
+                 target_pct: float | None = None):
         """
         exit_mode:
           "targets"  — fixed T1/T2/T3 partial exits (original behaviour)
@@ -51,15 +53,22 @@ class Backtester:
           "hybrid"   — bank half at T1 (+1.5R), move stop to breakeven, then
                        trail the remaining half with the ATR stop. Locks in
                        profit like "targets", keeps upside like "trailing".
+          "fixed"    — simple bracket: stop at stop_pct below entry, full
+                       exit at target_pct above entry (for testing tight-stop
+                       / quick-profit styles). Requires stop_pct & target_pct.
         trail_atr_mult — how many ATRs below the high-water close to trail.
         max_hold_days  — time stop: exit at close after this many calendar
                          days regardless of P&L (dead-capital rotation).
+        stop_pct / target_pct — bracket overrides used by exit_mode="fixed";
+                         they replace the strategy's own stop and targets.
         """
         self.strategy = strategy
         self.cfg = cfg
         self.exit_mode = exit_mode
         self.trail_atr_mult = trail_atr_mult
         self.max_hold_days = max_hold_days
+        self.stop_pct = stop_pct
+        self.target_pct = target_pct
         self._capital_cfg = cfg.get("account", {})
         self._initial_capital = float(self._capital_cfg.get("size", 100_000))
         self._risk_per_trade  = float(self._capital_cfg.get("risk_per_trade", 0.01))
@@ -133,6 +142,11 @@ class Backtester:
                 if shares < 1 or position_value > capital * 0.95:
                     continue
 
+                # Bracket overrides for exit_mode="fixed" experiments
+                if self.exit_mode == "fixed":
+                    stop = fill_price * (1 - (self.stop_pct or 0.02))
+                    entry_order["t1"] = fill_price * (1 + (self.target_pct or 0.07))
+
                 capital -= shares * fill_price
                 positions[ticker] = {
                     "entry":      fill_price,
@@ -174,6 +188,34 @@ class Backtester:
                 exit_price  = None
                 exit_reason = None
                 shares_closed = pos["shares"]
+
+                if self.exit_mode == "fixed":
+                    # ── Simple bracket: tight stop / fixed profit target ──
+                    close_px = float(bar["close"])
+                    if low <= pos["stop"]:
+                        exit_price  = pos["stop"]
+                        exit_reason = ExitReason.STOP_LOSS
+                    elif high >= pos["t1"]:
+                        exit_price  = pos["t1"]
+                        exit_reason = ExitReason.TARGET_1
+                    elif (self.max_hold_days is not None
+                          and (today - pos["entry_date"]).days >= self.max_hold_days):
+                        exit_price  = close_px
+                        exit_reason = ExitReason.MAX_HOLD
+                    if exit_price is not None:
+                        pnl = (exit_price - entry) * shares_closed
+                        capital += shares_closed * exit_price
+                        completed.append(BacktestTrade(
+                            ticker=ticker, strategy=self.strategy.name,
+                            entry_date=pos["entry_date"], exit_date=today,
+                            entry_price=entry, exit_price=exit_price,
+                            shares=shares_closed,
+                            pnl=pnl, pnl_pct=(exit_price - entry) / entry,
+                            holding_days=(today - pos["entry_date"]).days,
+                            exit_reason=exit_reason, mae=pos["mae"], mfe=pos["mfe"],
+                        ))
+                        closed_today.append(ticker)
+                    continue
 
                 if self.exit_mode in ("trailing", "hybrid"):
                     # ── Trailing / hybrid exit ─────────────────────────
