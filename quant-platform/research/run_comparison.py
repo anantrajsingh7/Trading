@@ -58,7 +58,11 @@ SECTORS = {
 UNIVERSE = list(SECTORS)
 PERIOD = "6y"          # 1y warmup + 5y evaluation
 HOLDOUT_MONTHS = 6
-MAIN = dict(entry_mode="reversal", stop_buffer=0.25, trail=2.5)
+# Main config promoted after the 2026-08-04 stability grid: the
+# reclaim/3.5-trail region was strong AND stable across all neighboring
+# parameters (PF 1.47-2.08), while reversal/2.5 was weak (PF 1.02).
+# This run validates that region on walk-forward OOS windows.
+MAIN = dict(entry_mode="reclaim", stop_buffer=0.25, trail=3.5)
 
 
 # ── Regime per spec: SPY>rising SMA50 & SMA200, QQQ>rising SMA50, breadth ─
@@ -239,6 +243,16 @@ def main():
     res_1pct = run("ema_pullback", cfg_for("ema_pullback", risk=0.01))
     m_1pct = metrics_from(res_1pct)
 
+    # ── Practical-constraints variant: 1% risk, 5 positions, 5% heat.
+    #    Same realistic costs — only the portfolio caps are loosened to
+    #    production-like levels. Answers "what would I actually earn".
+    print("Practical-constraints runs...")
+    practical = {}
+    for name in ["ema_pullback", "enhanced_ema_pullback"]:
+        c = cfg_for(name, risk=0.01)
+        c.max_positions, c.max_heat = 5, 0.05
+        practical[name] = metrics_from(run(name, c))
+
     # ── Walk-forward ───────────────────────────────────────────────
     print("Walk-forward...")
     wf_rows = []
@@ -366,6 +380,13 @@ def main():
     md += ["", "## Existing ema_pullback at production 1% risk (separate — not risk-comparable)",
            f"Trades {m_1pct['filled']} | PF {fmt(m_1pct['profit_factor'])} | "
            f"CAGR {fmt(m_1pct['cagr']*100,1)}% | MaxDD {fmt(m_1pct['max_dd']*100,1)}%",
+           "", "## Practical constraints (1% risk, 5 positions, 5% heat — realistic costs)",
+           "| Strategy | Trades | Win% | PF | Expect €/tr | CAGR | MaxDD | Sharpe |",
+           "|---|---|---|---|---|---|---|---|"] + [
+           f"| {n} | {p['filled']} | {fmt(p['win_rate']*100,0)}% | "
+           f"{fmt(p['profit_factor'])} | {fmt(p['expectancy_eur'])} | "
+           f"{fmt(p['cagr']*100,1)}% | {fmt(p['max_dd']*100,1)}% | {fmt(p['sharpe'])} |"
+           for n, p in practical.items()] + [
            "", "## Decision basis",
            "Winner selected on out-of-sample expectancy, walk-forward consistency,",
            "profit factor, drawdown, and stress-cost survival — not CAGR alone.",
