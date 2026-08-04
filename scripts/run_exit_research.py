@@ -190,6 +190,13 @@ def main() -> int:  # noqa: PLR0915 - a linear protocol reads better in one plac
     print("cannot be fixed by changing stops or targets.\n")
     print(verdict.to_string(index=False))
 
+    if "breakeven_cost_bps" in verdict.columns:
+        ceiling = float(verdict["breakeven_cost_bps"].max())
+        print(f"\nThe best family breaks even at a round-trip cost of {ceiling:.1f} bps, "
+              f"against {cost_bps:.0f} bps realistic.")
+        print("That gap is the whole problem, and it is a cost problem before it is a")
+        print("signal problem: no exit rule changes either number.")
+
     print("\nBest horizon per family (top 15 rows of the full table):")
     columns = ["event_spec", "horizon_hours", "n_signals", "gross_mean", "net_mean",
                "hit_rate", "hit_rate_after_cost", "beats_cost"]

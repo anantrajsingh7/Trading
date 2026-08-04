@@ -188,6 +188,12 @@ def forward_return_table(
                     "p95": float(np.quantile(values, 0.95)),
                     "net_mean": mean - cost,
                     "beats_cost": bool(mean > cost),
+                    # The round-trip cost at which this family would break even.
+                    # Compare it against the fee schedule you can actually get:
+                    # it says how much cheaper execution would have to become
+                    # before the signal is worth trading, which is a far more
+                    # actionable number than "negative".
+                    "breakeven_cost_bps": mean * 1e4,
                 }
             )
     if not rows:
@@ -312,6 +318,7 @@ def stage_one_verdict(
             "best_horizon_hours": float(best["horizon_hours"]),
             "best_gross_mean": float(best["gross_mean"]),
             "best_net_mean": float(best["net_mean"]),
+            "breakeven_cost_bps": float(best["breakeven_cost_bps"]),
             "horizons_tested": int(len(group)),
             "survives": bool(best["net_mean"] > 0),
         }
