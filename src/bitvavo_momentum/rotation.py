@@ -339,11 +339,45 @@ def default_rotation_strategies() -> list[RotationStrategy]:
     return variants
 
 
+def low_turnover_rotation_strategies() -> list[RotationStrategy]:
+    """Rotation variants that actually hold long enough for costs to matter less.
+
+    Separate from :func:`default_rotation_strategies` because these breach a
+    stated project constraint and the caller must opt in.
+
+    The default grid rebalances every 24 hours (one variant every 48). Measured
+    on real data that produced 128-341 position turns per slot per year and an
+    annual cost drag of 99%-262% of capital - the opposite of the low-turnover
+    thesis rotation was supposed to test. The drag is set by the holding period
+    alone: at 77 bps a 48-hour hold costs about 140% of capital a year, a weekly
+    hold 40%, a monthly hold 9%. Nothing below roughly a two-week hold has a
+    cost structure that any measured edge could cover.
+
+    Every variant here therefore holds longer than the spec's 48-hour maximum.
+    That is a real conflict, not an oversight: the 48-hour cap and the 77 bps
+    floor cannot both be satisfied by a profitable strategy, and this function
+    exists so the trade-off can be measured rather than argued about.
+    """
+    variants: list[RotationStrategy] = []
+    for rebalance_days in (7, 14, 30):
+        for lookback_hours in (168, 720):
+            variants.append(
+                RotationStrategy(RotationConfig(
+                    lookback_minutes=lookback_hours * 60,
+                    rebalance_minutes=rebalance_days * 24 * 60,
+                    top_n=3,
+                    skip_recent_minutes=24 * 60,
+                ))
+            )
+    return variants
+
+
 __all__ = [
     "RotationConfig",
     "RotationStrategy",
     "build_panel",
     "default_rotation_strategies",
+    "low_turnover_rotation_strategies",
     "holdings_to_signals",
     "rank_universe",
     "target_holdings",

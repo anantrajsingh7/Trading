@@ -201,6 +201,47 @@ def forward_return_table(
     return pd.DataFrame(rows).sort_values(["net_mean"], ascending=False).reset_index(drop=True)
 
 
+def cost_drag_table(
+    holding_hours: tuple[float, ...] = (6, 12, 24, 48, 24 * 7, 24 * 14, 24 * 30, 24 * 90),
+    round_trip_cost_bps: float = 77.0,
+    invested_fraction: float = 1.0,
+) -> pd.DataFrame:
+    """Annual cost of a strategy, as a function of how long it holds.
+
+    This is arithmetic, not a backtest, and it is the constraint every strategy
+    in this project has been fighting without the number ever being written
+    down. A round trip costs a fixed percentage. Halving the holding period
+    doubles the number of round trips per year and therefore doubles the annual
+    cost. At 77 bps and a 48-hour maximum hold, a fully-invested book pays about
+    140% of capital per year in execution - which no plausible edge covers.
+
+    ``required_gross_per_trade`` is simply the round-trip cost: what each trade
+    must gross, on average, merely to break even. Compare it against the
+    measured ``gross_mean`` for a family to see how far short the signal falls,
+    and against ``breakeven_cost_bps`` to see the same gap from the other side.
+
+    ``invested_fraction`` scales for a book that is not always in the market: a
+    strategy holding a position 40% of the time pays 40% of the drag.
+    """
+    cost = round_trip_cost_bps * 1e-4
+    hours_per_year = 365.0 * 24.0
+    rows = []
+    for hours in holding_hours:
+        round_trips = hours_per_year / hours * invested_fraction
+        rows.append(
+            {
+                "holding_hours": hours,
+                "holding_days": hours / 24.0,
+                "round_trips_per_year": round_trips,
+                "annual_cost_drag": round_trips * cost,
+                "required_gross_per_trade": cost,
+                "round_trip_cost_bps": round_trip_cost_bps,
+                "invested_fraction": invested_fraction,
+            }
+        )
+    return pd.DataFrame(rows)
+
+
 def excursion_table(
     outcomes: pd.DataFrame,
     levels: tuple[float, ...] = DEFAULT_LEVELS,

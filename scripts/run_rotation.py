@@ -11,18 +11,25 @@ best family's signal was worth about 34 bps gross at its best horizon. The
 problem was never that the signals were informationless; it was that each trade
 had to clear a toll larger than the information it carried.
 
-Rotation attacks the toll rather than the signal. A weekly-rebalanced book of
-three names turns over a few times a year per slot instead of hundreds of times,
-so the same modest edge is charged a fraction as often. It also does not need
-any individual trade to beat 77 bps - it needs the annual return to beat the
-annual drag, which for a 3-slot weekly book is single-digit percent.
+Rotation attacks the toll rather than the signal - in principle. The default
+grid does not, and the turnover table proves it: rebalancing every 24 hours over
+20 markets produced 128-341 position turns per slot per year and an annual cost
+drag of 99%-262% of capital. That is not low turnover, and the 0-of-24 result it
+produced is a result about a high-turnover book, not about rotation as an idea.
 
-That is a genuinely different bet, and it is the last built-but-untested
-component. It is not a prediction that it works: a low-turnover long-only
-strategy in a falling market is still long-only in a falling market, and the
-turnover diagnostic below reports the drag whether or not the returns justify it.
+The drag is set by the holding period and nothing else. At 77 bps, holding for
+48 hours costs about 140% of capital a year; a week costs 40%; a month costs 9%.
+``--allow-long-holds`` adds the weekly, fortnightly and monthly variants that
+actually test the thesis. They breach the spec's 48-hour maximum holding period,
+which is the point: at these costs the 48-hour cap and profitability cannot both
+hold, and that trade-off is better measured than argued about. See
+``scripts/cost_structure.py`` for the arithmetic.
+
+The turnover diagnostic prints before any return figure, so the bar a variant
+has to clear is visible before its result is.
 
     python scripts/run_rotation.py --max-markets 20
+    python scripts/run_rotation.py --max-markets 20 --allow-long-holds
 """
 
 from __future__ import annotations
@@ -52,7 +59,10 @@ from bitvavo_momentum.logging_utils import setup_logging  # noqa: E402
 from bitvavo_momentum.pipeline import build_dataset, result_store_for  # noqa: E402
 from bitvavo_momentum.risk_manager import RiskLimits, SizingConfig  # noqa: E402
 from bitvavo_momentum.robustness import independent_trade_count  # noqa: E402
-from bitvavo_momentum.rotation import default_rotation_strategies  # noqa: E402
+from bitvavo_momentum.rotation import (  # noqa: E402
+    default_rotation_strategies,
+    low_turnover_rotation_strategies,
+)
 from bitvavo_momentum.signal_strategies import compute_setup_features  # noqa: E402
 from bitvavo_momentum.strategies import ExitPolicy, ImmediateEntry  # noqa: E402
 from bitvavo_momentum.timeframes import SETUP_TF, resample_ohlcv  # noqa: E402
@@ -66,6 +76,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-markets", type=int, default=None)
     parser.add_argument("--rebalance-hours", type=int, nargs="*", default=None,
                         help="override the rebalance grid, e.g. --rebalance-hours 24 72 168")
+    parser.add_argument("--allow-long-holds", action="store_true",
+                        help="add weekly/fortnightly/monthly rebalance variants. These hold "
+                             "longer than the spec's 48-hour maximum; opt in deliberately.")
     parser.add_argument("--log-level", default="INFO")
     return parser.parse_args()
 
@@ -107,6 +120,13 @@ def main() -> int:  # noqa: PLR0915 - a linear protocol reads better in one plac
     log.info("Features ready for %d markets", len(features_by_market))
 
     strategies = default_rotation_strategies()
+    if args.allow_long_holds:
+        strategies = strategies + low_turnover_rotation_strategies()
+        print("\nNOTE: --allow-long-holds adds variants that hold for 7, 14 and 30 days.")
+        print("That exceeds the 48-hour maximum holding period stated in the project spec.")
+        print("They are included because the cost arithmetic makes the constraint and")
+        print("profitability mutually exclusive - see scripts/cost_structure.py - not")
+        print("because the constraint has been dropped.")
     if args.rebalance_hours:
         strategies = [s for s in strategies
                       if s.config.rebalance_minutes // 60 in set(args.rebalance_hours)]

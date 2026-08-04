@@ -229,3 +229,45 @@ def test_empty_inputs_return_empty_frames_not_exceptions():
     assert excursion_table(pd.DataFrame()).empty
     assert exit_reason_breakdown(pd.DataFrame()).empty
     assert stage_one_verdict(pd.DataFrame(), pd.DataFrame()).empty
+
+
+# --------------------------------------------------------------------------- #
+# cost structure
+# --------------------------------------------------------------------------- #
+def test_halving_the_holding_period_doubles_the_annual_cost():
+    """The relationship the whole project has been losing to, stated as a test."""
+    from bitvavo_momentum.exit_research import cost_drag_table
+
+    table = cost_drag_table((24.0, 48.0), round_trip_cost_bps=77.0)
+    daily = table[table["holding_hours"] == 24.0].iloc[0]
+    two_day = table[table["holding_hours"] == 48.0].iloc[0]
+    assert daily["annual_cost_drag"] == pytest.approx(2 * two_day["annual_cost_drag"])
+
+
+def test_forty_eight_hour_holds_cost_more_than_capital_per_year():
+    """At 77 bps, trading every 48 hours costs ~140% of capital annually.
+
+    This is why no exit rule and no entry family rescued anything: the drag is
+    set by the holding period, and the spec caps the holding period at 48h.
+    """
+    from bitvavo_momentum.exit_research import cost_drag_table
+
+    row = cost_drag_table((48.0,), round_trip_cost_bps=77.0).iloc[0]
+    assert row["round_trips_per_year"] == pytest.approx(182.5)
+    assert row["annual_cost_drag"] > 1.0
+    assert row["annual_cost_drag"] == pytest.approx(1.405, abs=0.01)
+
+
+def test_monthly_holds_bring_the_drag_into_a_survivable_range():
+    from bitvavo_momentum.exit_research import cost_drag_table
+
+    row = cost_drag_table((24.0 * 30,), round_trip_cost_bps=77.0).iloc[0]
+    assert row["annual_cost_drag"] < 0.10
+
+
+def test_a_partly_invested_book_pays_proportionally_less():
+    from bitvavo_momentum.exit_research import cost_drag_table
+
+    full = cost_drag_table((48.0,), 77.0, invested_fraction=1.0).iloc[0]
+    half = cost_drag_table((48.0,), 77.0, invested_fraction=0.5).iloc[0]
+    assert half["annual_cost_drag"] == pytest.approx(full["annual_cost_drag"] / 2)

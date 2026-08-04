@@ -102,6 +102,38 @@ by exit tuning — and one above it has an exit problem worth solving.
 Full record: `strategy_families_train.csv`, `exit_reason_breakdown.csv`,
 `exit_stage1_verdict.csv`.
 
+### Phase 10 — the cost structure, which explains all of the above
+
+Stage 1 of the exit research measured what each entry family's signal was worth
+with **no exit rule at all**: 18–34 bps gross at the best holding period, against
+a 77 bps round trip. Thirteen of sixteen families were *positive* gross while the
+matched-random baseline was negative, so the signals were not noise — they were
+worth less than half the toll.
+
+Rotation (Strategy 7) was then run to attack the toll rather than the signal:
+0 of 24 combinations positive. The turnover table showed why, and it contradicted
+the premise the test was built on — the default grid rebalances every 24 hours,
+which produced 128–341 position turns per slot per year and **99%–262% annual
+cost drag**. The low-turnover thesis was never actually tested by that grid.
+
+`scripts/cost_structure.py` writes down the arithmetic that was implicit all
+along. Annual cost is fixed by holding period alone, before any question of skill:
+
+| Holding period | Round trips/yr | Annual cost drag @ 77 bps |
+|---|---|---|
+| 6 hours | 1460 | 1124% |
+| 24 hours | 365 | 281% |
+| **48 hours (spec maximum)** | **182** | **140%** |
+| 1 week | 52 | 40% |
+| 1 month | 12 | 9.4% |
+| 3 months | 4 | 3.1% |
+
+**The spec's 48-hour maximum holding period and profitability after 77 bps costs
+are mutually exclusive.** No entry signal, exit rule or filter changes that; it
+is arithmetic. `run_rotation.py --allow-long-holds` adds weekly/fortnightly/
+monthly variants that breach the 48-hour cap deliberately, so the trade-off can
+be measured rather than argued about.
+
 ### Why it fails
 
 The realistic round-trip cost is **77 bps**. Gross forward returns are around
