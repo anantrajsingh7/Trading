@@ -68,6 +68,40 @@ was never opened, because nothing survived validation to justify opening it.
 Full record: `data/results/research_report.md`, `report.html`,
 `rejected_strategies.md`, `strategy_comparison.csv`.
 
+### Phase 9 — non-impulse entry families
+
+The impulse hypothesis being closed does not close *trading*, so three entry
+families that do not depend on a spike were tested next: trend continuation
+(Strategy 1), volatility-compression breakout (Strategy 2) and Donchian channel
+breakout (Strategy 8) — 16 variants over 20 markets, 124,752 signals, 60,480 in
+the training split.
+
+**0 of 16 had positive net expectancy.** Best was `S8_donchian_48` at −1.30% per
+trade (profit factor 0.374); worst was `S8_donchian_24_notrend` at −2.32% with a
+−68.9% drawdown.
+
+Two things stop that from being the end of the story, and both are recorded here
+rather than buried:
+
+* Win rates were **5.1%–8.5%**. All 16 variants ran through one exit policy
+  (+10% target, 1.5×ATR stop, 48h clock). A win rate that low is evidence the
+  *target* was almost never reached — which is a fact about the exit, not
+  necessarily about the entry.
+* The **matched-random baseline over the same signals was also negative**
+  (−0.03% at 4h, −0.47% at 48h). The 2025 training window fell, and every one of
+  these strategies is long-only. Losing money in that period is not by itself
+  evidence of a bad signal.
+
+`scripts/run_exit_research.py` separates the two explanations before anything is
+declared dead: stage 1 measures what each signal was worth with *no exit rule at
+all* across 6/12/24/36/48h, plus how far price actually ran in favour. A
+buy-and-hold-to-horizon return is the ceiling on what any non-clairvoyant exit
+can average, so a family below the cost floor at every horizon cannot be rescued
+by exit tuning — and one above it has an exit problem worth solving.
+
+Full record: `strategy_families_train.csv`, `exit_reason_breakdown.csv`,
+`exit_stage1_verdict.csv`.
+
 ### Why it fails
 
 The realistic round-trip cost is **77 bps**. Gross forward returns are around

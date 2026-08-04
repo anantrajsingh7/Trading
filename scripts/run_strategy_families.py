@@ -38,6 +38,7 @@ from bitvavo_momentum.backtester import Backtester  # noqa: E402
 from bitvavo_momentum.baseline import matched_random_baseline  # noqa: E402
 from bitvavo_momentum.config import Config, load_dotenv_if_present  # noqa: E402
 from bitvavo_momentum.execution_model import ExecutionModel, load_scenarios  # noqa: E402
+from bitvavo_momentum.exit_research import exit_reason_breakdown  # noqa: E402
 from bitvavo_momentum.logging_utils import setup_logging  # noqa: E402
 from bitvavo_momentum.pipeline import build_dataset, result_store_for  # noqa: E402
 from bitvavo_momentum.risk_manager import RiskLimits, SizingConfig  # noqa: E402
@@ -169,6 +170,7 @@ def main() -> int:  # noqa: PLR0915 - a linear protocol reads better in one plac
     # -- family comparison on TRAIN data only -------------------------------
     policies = exit_policies(args.quick, args.holding_minutes)
     rows: list[dict] = []
+    trade_log: list[pd.DataFrame] = []
     total = len(strategies) * len(policies)
     done = 0
     started = time.time()
@@ -196,6 +198,7 @@ def main() -> int:  # noqa: PLR0915 - a linear protocol reads better in one plac
             closed = result.closed_trades()
             if not closed.empty:
                 row.update(independent_trade_count(closed))
+                trade_log.append(closed)
             rows.append(row)
 
     table = pd.DataFrame(rows)
@@ -214,6 +217,20 @@ def main() -> int:  # noqa: PLR0915 - a linear protocol reads better in one plac
 
     positive = table[table["net_expectancy"] > 0]
     print(f"\nCombinations with positive net expectancy on train: {len(positive)} of {len(table)}")
+
+    # Which exit actually closed the trades? A family whose trades are almost all
+    # time-stops was tested against the clock, not against its stop and target.
+    if trade_log:
+        reasons = exit_reason_breakdown(pd.concat(trade_log, ignore_index=True))
+        if not reasons.empty:
+            store.write_frame("exit_reason_breakdown.csv", reasons)
+            print("\nHow trades actually ended (all variants pooled):")
+            pooled = reasons.groupby("exit_reason").agg(
+                n_trades=("n_trades", "sum"),
+                mean_net_pct=("mean_net_pct", "mean"),
+            ).reset_index()
+            pooled["share"] = pooled["n_trades"] / pooled["n_trades"].sum()
+            print(pooled.sort_values("n_trades", ascending=False).to_string(index=False))
 
     # -- promote survivors to validation ------------------------------------
     survivors = positive[positive["n_trades"] >= 30]
