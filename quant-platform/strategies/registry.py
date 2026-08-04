@@ -14,6 +14,7 @@ from strategies.breakout       import BreakoutStrategy
 from strategies.pullback       import EMApullbackStrategy
 from strategies.momentum_strat import MomentumStrategy
 from strategies.mean_reversion import MeanReversionStrategy
+from strategies.enhanced_ema   import EnhancedEMAPullbackStrategy
 
 _REGISTRY: dict[str, BaseStrategy] = {}
 
@@ -28,6 +29,7 @@ _register(BreakoutStrategy())
 _register(EMApullbackStrategy())
 _register(MomentumStrategy())
 _register(MeanReversionStrategy())
+_register(EnhancedEMAPullbackStrategy())   # research only — not in production scan
 
 
 def get_strategy(name: str) -> BaseStrategy:
