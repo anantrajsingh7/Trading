@@ -20,16 +20,19 @@ produced is a result about a high-turnover book, not about rotation as an idea.
 The drag is set by the holding period and nothing else. At 77 bps, holding for
 48 hours costs about 140% of capital a year; a week costs 40%; a month costs 9%.
 ``--allow-long-holds`` adds the weekly, fortnightly and monthly variants that
-actually test the thesis. They breach the spec's 48-hour maximum holding period,
-which is the point: at these costs the 48-hour cap and profitability cannot both
-hold, and that trade-off is better measured than argued about. See
-``scripts/cost_structure.py`` for the arithmetic.
+actually test the thesis. See ``scripts/cost_structure.py`` for the arithmetic.
+
+``--max-holding-hours`` enforces a hard cap independent of the rebalance
+schedule, so a one-week limit can be tested honestly: a position the ranking
+would have retained is force-closed and reopened, and the backtester charges the
+full round trip for it. That is the real price of a holding limit, and it is
+charged rather than assumed away.
 
 The turnover diagnostic prints before any return figure, so the bar a variant
 has to clear is visible before its result is.
 
     python scripts/run_rotation.py --max-markets 20
-    python scripts/run_rotation.py --max-markets 20 --allow-long-holds
+    python scripts/run_rotation.py --max-markets 20 --allow-long-holds --max-holding-hours 168
 """
 
 from __future__ import annotations
@@ -49,7 +52,7 @@ from bitvavo_momentum.baseline import matched_random_baseline  # noqa: E402
 from bitvavo_momentum.config import Config, load_dotenv_if_present  # noqa: E402
 from bitvavo_momentum.execution_model import ExecutionModel, load_scenarios  # noqa: E402
 from bitvavo_momentum.exit_research import (  # noqa: E402
-    DEFAULT_HORIZONS,
+    excursion_table,
     exit_reason_breakdown,
     forward_return_table,
     signal_outcomes,
@@ -68,6 +71,14 @@ from bitvavo_momentum.strategies import ExitPolicy, ImmediateEntry  # noqa: E402
 from bitvavo_momentum.timeframes import SETUP_TF, resample_ohlcv  # noqa: E402
 from bitvavo_momentum.walk_forward import apply_split, chronological_splits  # noqa: E402
 
+# Stage-1 horizons, in minutes: 6h out to 14 days. The default 48-hour grid
+# cannot distinguish a ranking whose value compounds over a week from one that
+# peaks after a day, and that distinction decides whether a weekly strategy is
+# worth building.
+LONG_HORIZONS: tuple[int, ...] = (
+    6 * 60, 12 * 60, 24 * 60, 48 * 60, 72 * 60, 120 * 60, 168 * 60, 240 * 60, 336 * 60,
+)
+
 
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -76,6 +87,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-markets", type=int, default=None)
     parser.add_argument("--rebalance-hours", type=int, nargs="*", default=None,
                         help="override the rebalance grid, e.g. --rebalance-hours 24 72 168")
+    parser.add_argument("--max-holding-hours", type=float, default=None,
+                        help="force-close any position after this many hours, independent of "
+                             "the rebalance schedule (e.g. 168 for a strict one-week cap)")
     parser.add_argument("--allow-long-holds", action="store_true",
                         help="add weekly/fortnightly/monthly rebalance variants. These hold "
                              "longer than the spec's 48-hour maximum; opt in deliberately.")
@@ -122,11 +136,11 @@ def main() -> int:  # noqa: PLR0915 - a linear protocol reads better in one plac
     strategies = default_rotation_strategies()
     if args.allow_long_holds:
         strategies = strategies + low_turnover_rotation_strategies()
-        print("\nNOTE: --allow-long-holds adds variants that hold for 7, 14 and 30 days.")
-        print("That exceeds the 48-hour maximum holding period stated in the project spec.")
-        print("They are included because the cost arithmetic makes the constraint and")
-        print("profitability mutually exclusive - see scripts/cost_structure.py - not")
-        print("because the constraint has been dropped.")
+        print("\nNOTE: --allow-long-holds adds variants that rebalance every 7, 14 and 30")
+        print("days. Without --max-holding-hours their positions can be held that long, which")
+        print("exceeds a one-week holding limit. Pass --max-holding-hours 168 to enforce one")
+        print("week; the fortnightly and monthly variants then serve only as a reference for")
+        print("what the holding limit costs.")
     if args.rebalance_hours:
         strategies = [s for s in strategies
                       if s.config.rebalance_minutes // 60 in set(args.rebalance_hours)]
@@ -183,19 +197,40 @@ def main() -> int:  # noqa: PLR0915 - a linear protocol reads better in one plac
         return 1
 
     # -- stage 1: is the ranking informative before any exit rule? ------------
-    outcomes = signal_outcomes(train, features_by_market, DEFAULT_HORIZONS,
-                               interval=args.setup_tf, max_holding_minutes=48 * 60)
+    # Horizons run to 14 days deliberately. The required gross return per trade
+    # is the round-trip cost and does not shrink with holding period; what a
+    # longer hold buys is more time to accumulate it. So the decisive question
+    # for a weekly strategy is whether the ranking's value keeps compounding out
+    # to a week, or peaks after a day and decays - and a 48-hour cap cannot see
+    # the difference.
+    hold_minutes = int(max(LONG_HORIZONS))
+    outcomes = signal_outcomes(train, features_by_market, LONG_HORIZONS,
+                               interval=args.setup_tf, max_holding_minutes=hold_minutes)
     if not outcomes.empty:
-        forward = forward_return_table(outcomes, DEFAULT_HORIZONS, round_trip_cost_bps=cost_bps)
-        verdict = stage_one_verdict(forward, pd.DataFrame())
+        forward = forward_return_table(outcomes, LONG_HORIZONS, round_trip_cost_bps=cost_bps)
+        excursions = excursion_table(outcomes, max_holding_minutes=hold_minutes)
+        verdict = stage_one_verdict(forward, excursions)
         store.write_frame("rotation_stage1_verdict.csv", verdict)
+        store.write_frame("rotation_stage1_forward_returns.csv", forward)
         print(f"\n{'=' * 100}")
         print("STAGE 1 - RANKING VALUE WITH NO EXIT RULE (train split)")
         print(f"{'=' * 100}")
-        print("Note: rotation holds to the next rebalance, so a 48h horizon understates a")
-        print("weekly variant. Read this as the short-horizon value of the ranking, not as")
-        print("the strategy's return - the backtest below is the strategy.\n")
+        print(f"Horizons from 6 hours to {hold_minutes // 1440} days. Each trade must gross")
+        print(f"{cost_bps:.0f} bps to break even regardless of how long it is held, so the")
+        print("question is whether the ranking's value keeps accruing with time.\n")
         print(verdict.to_string(index=False))
+
+        print("\nHow the ranking's value evolves with holding period (best 3 variants):")
+        top = verdict.head(3)["event_spec"].tolist()
+        curve = forward[forward["event_spec"].isin(top)].sort_values(
+            ["event_spec", "horizon_minutes"])
+        columns = ["event_spec", "horizon_hours", "n_signals", "gross_mean",
+                   "net_mean", "hit_rate", "beats_cost"]
+        print(curve[[c for c in columns if c in curve.columns]].to_string(index=False))
+        if bool(forward["beats_cost"].any()):
+            print("\nAt least one variant/horizon clears the cost floor gross. That is a "
+                  "candidate, not a result: it still has to survive the backtest below, "
+                  "then validation.")
 
     # -- backtest -------------------------------------------------------------
     # The exit is the rebalance, so the only exit rule is the clock plus a
@@ -218,8 +253,14 @@ def main() -> int:  # noqa: PLR0915 - a linear protocol reads better in one plac
         subset = train[train["event_spec"] == strategy.name]
         if subset.empty:
             continue
-        # Hold to the next rebalance; the max holding cap is the rebalance period.
+        # Hold to the next rebalance, unless a shorter hard cap is requested.
+        # A cap below the rebalance period forces a close-and-reopen on a name
+        # the ranking would have retained, and the backtester charges the full
+        # round trip for it - which is the real cost of a strict holding limit,
+        # not a modelling artefact.
         holding_minutes = strategy.config.rebalance_minutes
+        if args.max_holding_hours:
+            holding_minutes = min(holding_minutes, int(args.max_holding_hours * 60))
         for policy in policies:
             engine = Backtester(
                 ExecutionModel(scenarios[headline], seed=seed), policy, sizing, limits,
@@ -291,7 +332,10 @@ def main() -> int:  # noqa: PLR0915 - a linear protocol reads better in one plac
                 engine = Backtester(
                     ExecutionModel(scenarios[scenario_name], seed=seed), policy, sizing, limits,
                     starting_equity=starting_equity, interval=args.setup_tf,
-                    max_holding_minutes=strategy.config.rebalance_minutes,
+                    max_holding_minutes=(
+                        min(strategy.config.rebalance_minutes, int(args.max_holding_hours * 60))
+                        if args.max_holding_hours else strategy.config.rebalance_minutes
+                    ),
                     circuit_breakers=config.get("risk", "circuit_breakers", default={}),
                 )
                 result = engine.run(subset, features_by_market, ImmediateEntry(), seed=seed)
