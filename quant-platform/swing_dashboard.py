@@ -81,6 +81,18 @@ def _regime_color(r):
             "BEAR_MODERATE": "#ffa657", "BEAR_STRONG": "#f85149"}.get(r, "#8b949e")
 
 
+def _extension(df) -> tuple[float, float]:
+    """(% below 52-week high, % above EMA20) — the 'am I chasing?' check.
+    0% from high = at a 52-week high; >10% above EMA20 = extended."""
+    c = df["close"]
+    hi52 = float(c.tail(252).max())
+    last = float(c.iloc[-1])
+    ema20 = float(c.ewm(span=20, adjust=False).mean().iloc[-1])
+    from_high = (hi52 - last) / hi52 * 100 if hi52 > 0 else 0.0
+    above_ema = (last - ema20) / ema20 * 100 if ema20 > 0 else 0.0
+    return from_high, above_ema
+
+
 def _rs_ranks(enriched: dict) -> dict:
     """RS score = 0.4*ROC3M + 0.2*ROC6M + 0.2*ROC9M + 0.2*ROC12M,
     expressed as percentile rank vs the scanned universe."""
@@ -211,6 +223,8 @@ def build():
             "hist_expectancy": c["hist_expectancy"], "hist_trades": c["hist_trades"],
             "combined": combined, "status": status, "reason": c.get("reason", ""),
             "rs": rs_ranks.get(ticker, 0),
+            "from_high": _extension(enriched[ticker])[0],
+            "above_ema": _extension(enriched[ticker])[1],
         }
 
     ranked = [_to_row(t, c, "VALIDATED") for t, c in candidates.items()]
@@ -305,11 +319,13 @@ def build():
           <td style="color:#c9d1d9;">{r['hist_pf']:.2f}</td>
           <td style="color:#8b949e;">{r['hist_trades']}</td>
           <td style="color:{'#3fb950' if r['rs'] >= 70 else '#8b949e'};">{r['rs']:.0f}</td>
+          <td style="color:{'#e3b341' if r['from_high'] < 1 else '#c9d1d9'};">{r['from_high']:.1f}%</td>
+          <td style="color:{'#f85149' if r['above_ema'] > 10 else '#3fb950' if r['above_ema'] < 5 else '#e3b341'};">{r['above_ema']:+.1f}%</td>
           <td>{r['qty']}</td>
         </tr>"""
 
     if not rows:
-        rows = ('<tr><td colspan="12" style="text-align:center;color:#8b949e;padding:24px;">'
+        rows = ('<tr><td colspan="14" style="text-align:center;color:#8b949e;padding:24px;">'
                 'No setups flagged at all today. Stay in cash.</td></tr>')
 
     # Expert section rows
@@ -393,7 +409,8 @@ def build():
     <table>
       <thead><tr>
         <th>Stock</th><th>Status</th><th>Conf.</th><th>Strategy</th><th>Entry</th><th>Stop</th>
-        <th>Target +10%</th><th>R:R</th><th>Hist Win%</th><th>Hist PF</th><th>#Trades</th><th>RS</th><th>Qty</th>
+        <th>Target +10%</th><th>R:R</th><th>Hist Win%</th><th>Hist PF</th><th>#Trades</th><th>RS</th>
+        <th>Below 52w High</th><th>vs EMA20</th><th>Qty</th>
       </tr></thead>
       <tbody>{rows}</tbody>
     </table>
@@ -426,8 +443,8 @@ def build():
           "",
           f"> {banner}",
           "",
-          "| Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | Qty |",
-          "|---|---|---|---|---|---|---|---|---|---|---|"]
+          "| Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | BelowHigh | vsEMA20 | Qty |",
+          "|---|---|---|---|---|---|---|---|---|---|---|---|---|"]
     for r in ranked[:15]:
         tk = r["ticker"].replace(".NS", "")
         status = "✅" if r["status"] == "VALIDATED" else f"⚠ {r['reason']}"
@@ -435,7 +452,7 @@ def build():
                   f"| {CUR}{r['entry']:,.2f} | {CUR}{r['stop']:,.2f} "
                   f"| {CUR}{r['swing_target']:,.2f} | {r['rr_swing']:.1f}:1 "
                   f"| {r['hist_winrate']*100:.0f}% | {r['hist_pf']:.2f} "
-                  f"| {r['rs']:.0f} | {r['qty']} |")
+                  f"| {r['rs']:.0f} | {r['from_high']:.1f}% | {r['above_ema']:+.1f}% | {r['qty']} |")
     md += ["", "## Expert System — enhanced_ema_pullback (PAPER)", ""]
     if expert_rows:
         md += ["| Stock | Buy-stop Entry | Initial Stop | Exit (3.5×ATR trail) | RS | Qty |",
