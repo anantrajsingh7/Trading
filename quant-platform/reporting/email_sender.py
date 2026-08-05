@@ -110,22 +110,45 @@ def _send_gmail(sender: str, password: str, recipient: str,
     msg.attach(MIMEText("Open in HTML email client to view dashboard.", "plain"))
     msg.attach(MIMEText(html, "html"))
 
-    try:
-        ctx = ssl.create_default_context()
-        ip  = socket.getaddrinfo("smtp.gmail.com", 587, socket.AF_INET)[0][4][0]
-        with smtplib.SMTP(ip, 587, timeout=20) as smtp:
-            smtp.ehlo()
-            smtp.starttls(context=ctx)
-            smtp.login(sender, password)
-            smtp.sendmail(sender, recipient, msg.as_string())
-        log.info("Dashboard emailed via Gmail SMTP to %s", recipient)
-        return True
-    except smtplib.SMTPAuthenticationError:
-        log.error("Gmail auth failed — check GMAIL_SENDER / GMAIL_APP_PASSWORD")
-        return False
-    except Exception as e:
-        log.error("Gmail SMTP failed: %s", e)
-        return False
+    # Always connect by HOSTNAME. Connecting to a resolved IP breaks TLS
+    # verification: Gmail's certificate is issued for smtp.gmail.com, so an
+    # IP target raises CERTIFICATE_VERIFY_FAILED (IP address mismatch).
+    ctx = ssl.create_default_context()
+
+    # Try STARTTLS on 587 first, then implicit TLS on 465 as a fallback
+    # (some networks block one or the other).
+    attempts = (
+        ("starttls", "smtp.gmail.com", 587),
+        ("ssl",      "smtp.gmail.com", 465),
+    )
+    last_err = None
+    for mode, host, port in attempts:
+        try:
+            if mode == "starttls":
+                with smtplib.SMTP(host, port, timeout=30) as smtp:
+                    smtp.ehlo()
+                    smtp.starttls(context=ctx)
+                    smtp.login(sender, password)
+                    smtp.sendmail(sender, recipient, msg.as_string())
+            else:
+                with smtplib.SMTP_SSL(host, port, context=ctx, timeout=30) as smtp:
+                    smtp.login(sender, password)
+                    smtp.sendmail(sender, recipient, msg.as_string())
+            log.info("Dashboard emailed via Gmail SMTP (%s:%d) to %s", host, port, recipient)
+            return True
+        except smtplib.SMTPAuthenticationError:
+            log.error(
+                "Gmail auth rejected — GMAIL_APP_PASSWORD must be a 16-character "
+                "App Password (not your normal Gmail password), and GMAIL_SENDER "
+                "must be the account that generated it."
+            )
+            return False        # auth won't improve on the next port
+        except Exception as e:
+            last_err = e
+            log.warning("Gmail SMTP %s:%d failed: %s", host, port, e)
+
+    log.error("Gmail SMTP failed on all endpoints: %s", last_err)
+    return False
 
 
 def test_connection() -> bool:
