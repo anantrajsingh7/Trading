@@ -16,4 +16,8 @@
 | **BAX** | ⚠ only 1 hist. trades | minervini_vcp | €28.35 | €26.08 | €31.19 | 1.3:1 | 100% | inf | 94 | 105 |
 | **PH** | ⚠ RS rank 70; earnings in 1d | volume_breakout | €992.65 | €923.16 | €1,091.92 | 1.4:1 | 83% | 13.79 | 70 | 3 |
 
-_Generated 2026-08-05 10:56 — research only, not financial advice._
+## Expert System — enhanced_ema_pullback (PAPER)
+
+_No expert setups today — the reclaim entry is selective; no signal is a signal._
+
+_Generated 2026-08-05 11:35 — research only, not financial advice._
