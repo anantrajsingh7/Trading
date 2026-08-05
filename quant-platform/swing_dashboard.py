@@ -233,6 +233,40 @@ def build():
                 r["status"] = "WATCH"
             r["reason"] = (r["reason"] + "; " if r["reason"] else "") + f"earnings in {d}d"
 
+    # ── EXPERT SYSTEM (paper): enhanced_ema_pullback, the research
+    #    winner (reclaim entry, stop=swing_low−0.25×ATR, 3.5×ATR trail).
+    #    Shown separately from production; forward/paper validation. ──
+    from strategies.enhanced_ema import compute_setup_table
+    expert_rows = []
+    if scale_pct > 0:
+        for t, df in enriched.items():
+            if len(df) < 220 or rs_ranks.get(t, 0) < 80:
+                continue
+            try:
+                etab = compute_setup_table(df, stop_atr_buffer=0.25, entry_mode="reclaim")
+            except Exception:
+                continue
+            erow = etab.iloc[-1]
+            if not bool(erow["setup_ok"]):
+                continue
+            d = _days_to_earnings(t)
+            if d is not None and d <= EARNINGS_BLACKOUT_DAYS:
+                continue
+            trigger = float(erow["trigger"])
+            estop = float(erow["init_stop"])
+            eatr = float(erow["atr"])
+            risk_ps = trigger - estop
+            if risk_ps <= 0:
+                continue
+            eqty = max(1, int(min(ACCOUNT * 0.01, MAX_RISK) / risk_ps))
+            if eqty * trigger > ACCOUNT * 0.10:
+                eqty = max(1, int(ACCOUNT * 0.10 / trigger))
+            expert_rows.append(dict(
+                ticker=t.replace(".NS", ""), entry=trigger, stop=estop,
+                stop_pct=risk_ps / trigger * 100, trail_dist=3.5 * eatr,
+                rs=rs_ranks.get(t, 0), qty=eqty))
+    expert_rows.sort(key=lambda r: -r["rs"])
+
     # ── Position sizing (1% risk, hard-capped at MAX_RISK,
     #    position capped at 10% of account) ────────────────────────
     risk_eur = min(ACCOUNT * 0.01 * (scale_pct / 100), MAX_RISK)
@@ -277,6 +311,42 @@ def build():
     if not rows:
         rows = ('<tr><td colspan="12" style="text-align:center;color:#8b949e;padding:24px;">'
                 'No setups flagged at all today. Stay in cash.</td></tr>')
+
+    # Expert section rows
+    ex_rows = ""
+    for r in expert_rows[:10]:
+        ex_rows += f"""
+        <tr>
+          <td><strong style="color:#f0f6fc;">{r['ticker']}</strong></td>
+          <td>{CUR}{r['entry']:,.2f}</td>
+          <td style="color:#f85149;">{CUR}{r['stop']:,.2f} (−{r['stop_pct']:.1f}%)</td>
+          <td style="color:#e3b341;">close − {CUR}{r['trail_dist']:,.2f}</td>
+          <td style="color:#8b949e;">{r['rs']:.0f}</td>
+          <td>{r['qty']}</td>
+        </tr>"""
+    if not ex_rows:
+        ex_rows = ('<tr><td colspan="6" style="text-align:center;color:#8b949e;'
+                   'padding:18px;">No expert-system setups today. The reclaim '
+                   'entry is selective (~1-2 signals/week) — no signal is a signal.</td></tr>')
+
+    expert_html = f"""
+  <div class="section-title">Expert System — enhanced_ema_pullback (PAPER validation)</div>
+  <div class="card">
+    <table>
+      <thead><tr>
+        <th>Stock</th><th>Buy-stop Entry</th><th>Initial Stop</th>
+        <th>Exit: 3.5×ATR trail</th><th>RS</th><th>Qty</th>
+      </tr></thead>
+      <tbody>{ex_rows}</tbody>
+    </table>
+    <div class="legend">
+      Research winner (PF 1.99 vs 1.28 backtested). <strong>Entry:</strong> buy next session
+      when price trades through the buy-stop; skip if it opens &gt;2% above it.
+      <strong>Exit:</strong> trail a stop 3.5×ATR below the highest close since entry —
+      it rises, never falls; no profit target. <strong>Status: PAPER ONLY</strong> until 20
+      forward trades confirm the backtest.
+    </div>
+  </div>"""
 
     n_val = sum(1 for r in ranked if r["status"] == "VALIDATED")
     n_watch = sum(1 for r in ranked if r["status"] == "WATCH")
@@ -336,6 +406,7 @@ def build():
       <strong>Never hold more than {MAX_OPEN} positions at once</strong> — total open risk stays ≤ {CUR}{risk_eur*MAX_OPEN:,.0f}.
     </div>
   </div>
+  {expert_html}
   <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
     Quant Platform — research only, not financial advice — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
   </div>
@@ -365,6 +436,16 @@ def build():
                   f"| {CUR}{r['swing_target']:,.2f} | {r['rr_swing']:.1f}:1 "
                   f"| {r['hist_winrate']*100:.0f}% | {r['hist_pf']:.2f} "
                   f"| {r['rs']:.0f} | {r['qty']} |")
+    md += ["", "## Expert System — enhanced_ema_pullback (PAPER)", ""]
+    if expert_rows:
+        md += ["| Stock | Buy-stop Entry | Initial Stop | Exit (3.5×ATR trail) | RS | Qty |",
+               "|---|---|---|---|---|---|"]
+        for r in expert_rows[:10]:
+            md.append(f"| **{r['ticker']}** | {CUR}{r['entry']:,.2f} "
+                      f"| {CUR}{r['stop']:,.2f} (−{r['stop_pct']:.1f}%) "
+                      f"| close − {CUR}{r['trail_dist']:,.2f} | {r['rs']:.0f} | {r['qty']} |")
+    else:
+        md.append("_No expert setups today — the reclaim entry is selective; no signal is a signal._")
     md += ["", f"_Generated {datetime.now().strftime('%Y-%m-%d %H:%M')} — research only, not financial advice._"]
     (reports / f"{prefix}latest.md").write_text("\n".join(md), encoding="utf-8")
     (reports / f"{prefix}latest.html").write_text(html, encoding="utf-8")

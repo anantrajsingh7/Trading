@@ -3,7 +3,7 @@ name: Daily Swing Scan
 on:
   workflow_dispatch:        # run on demand (e.g. from phone via GitHub app)
   schedule:
-    - cron: "7 8 * * 1-5"   # weekdays 08:07 UTC ≈ 10:07 Amsterdam (CEST)
+    - cron: "0 8 * * 1-5"   # weekdays 08:00 UTC = 10:00 Amsterdam (CEST)
 
 permissions:
   contents: write
@@ -30,6 +30,21 @@ jobs:
         env:
           CI: "true"
         run: python swing_dashboard.py
+
+      - name: Email dashboard
+        working-directory: quant-platform
+        env:
+          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
+          GMAIL_SENDER: ${{ secrets.GMAIL_SENDER }}
+          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
+          ALERT_EMAIL_TO: anantrajsingh7@gmail.com
+        run: |
+          python - <<'EOF'
+          from pathlib import Path
+          from reporting.email_sender import send_dashboard
+          ok = send_dashboard(Path("reports/latest.html"))
+          print("email sent" if ok else "email skipped (no credentials configured)")
+          EOF
 
       - name: Commit latest report
         run: |
