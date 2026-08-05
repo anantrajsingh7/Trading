@@ -40,10 +40,19 @@ jobs:
           ALERT_EMAIL_TO: anantrajsingh7@gmail.com
         run: |
           python - <<'EOF'
+          import os, sys
           from pathlib import Path
           from reporting.email_sender import send_dashboard
+          have_creds = bool(os.getenv("SENDGRID_API_KEY", "").strip()) or bool(
+              os.getenv("GMAIL_SENDER", "").strip() and os.getenv("GMAIL_APP_PASSWORD", "").strip())
           ok = send_dashboard(Path("reports/latest.html"))
-          print("email sent" if ok else "email skipped (no credentials configured)")
+          if ok:
+              print("EMAIL SENT")
+          elif not have_creds:
+              print("EMAIL SKIPPED - no credentials configured")
+          else:
+              print("EMAIL FAILED - credentials present but send failed (see error above)")
+              sys.exit(1)
           EOF
 
       - name: Commit latest report
