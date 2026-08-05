@@ -20,4 +20,4 @@
 
 _No expert setups today — the reclaim entry is selective; no signal is a signal._
 
-_Generated 2026-08-05 12:06 — research only, not financial advice._
+_Generated 2026-08-05 12:27 — research only, not financial advice._
