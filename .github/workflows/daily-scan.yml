@@ -3,7 +3,12 @@ name: Daily Swing Scan
 on:
   workflow_dispatch:        # run on demand (e.g. from phone via GitHub app)
   schedule:
-    - cron: "0 8 * * 1-5"   # weekdays 08:00 UTC = 10:00 Amsterdam (CEST)
+    # GitHub delays or silently drops scheduled runs under load, so we make
+    # three attempts. The "already ran today" guard below means only the
+    # first one that actually fires does the work and sends the email.
+    - cron: "0 8 * * 1-5"    # 08:00 UTC = 10:00 Amsterdam (CEST)
+    - cron: "40 8 * * 1-5"   # backup
+    - cron: "20 9 * * 1-5"   # last resort
 
 permissions:
   contents: write
@@ -16,22 +21,40 @@ jobs:
         with:
           ref: claude/swing-trading-analysis-system-e439iw
 
+      # Skip duplicate scheduled attempts once today's scan already ran.
+      # Manual dispatch always runs, so you can force a refresh any time.
+      - name: Already scanned today?
+        id: guard
+        run: |
+          TODAY=$(date -u +%Y-%m-%d)
+          if [ "${{ github.event_name }}" = "schedule" ] && \
+             grep -q "Generated $TODAY" quant-platform/reports/latest.md 2>/dev/null; then
+            echo "skip=true" >> $GITHUB_OUTPUT
+            echo "Scan for $TODAY already completed - skipping this attempt."
+          else
+            echo "skip=false" >> $GITHUB_OUTPUT
+          fi
+
       - uses: actions/setup-python@v5
+        if: steps.guard.outputs.skip == 'false'
         with:
           python-version: "3.12"
 
       - name: Install dependencies
+        if: steps.guard.outputs.skip == 'false'
         run: >
           pip install pandas numpy yfinance pyyaml python-dotenv scipy
           tqdm sqlalchemy rich lxml pyarrow requests
 
       - name: Run swing scan
+        if: steps.guard.outputs.skip == 'false'
         working-directory: quant-platform
         env:
           CI: "true"
         run: python swing_dashboard.py
 
       - name: Email dashboard
+        if: steps.guard.outputs.skip == 'false'
         working-directory: quant-platform
         env:
           SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
@@ -56,6 +79,7 @@ jobs:
           EOF
 
       - name: Commit latest report
+        if: steps.guard.outputs.skip == 'false'
         run: |
           git config user.name "swing-scan-bot"
           git config user.email "actions@github.com"
