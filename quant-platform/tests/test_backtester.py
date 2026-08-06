@@ -154,3 +154,43 @@ class TestBacktesterEngine:
         result = backtester.run(data)
         for trade in result.trades:
             assert trade.entry_date <= trade.exit_date
+
+
+class TestMetricsEdgeCases:
+    """Regression: a stock whose backtest produced only losing trades made
+    avg_win_loss_ratio == 0, and compute_metrics divided by it (ZeroDivisionError),
+    which crashed the whole daily scan at ~91% through the universe."""
+
+    def _trade(self, pnl, pct, day):
+        from datetime import date, timedelta
+        from core.models import BacktestTrade, ExitReason
+        return BacktestTrade(
+            ticker="X", strategy="s",
+            entry_date=date(2024, 1, 1) + timedelta(days=day),
+            exit_date=date(2024, 1, 2) + timedelta(days=day),
+            entry_price=100.0, exit_price=100.0 + pnl, shares=1,
+            pnl=pnl, pnl_pct=pct, holding_days=1,
+            exit_reason=ExitReason.STOP_LOSS,
+        )
+
+    def test_all_losing_trades_does_not_crash(self):
+        import pandas as pd
+        from datetime import date
+        from backtester.metrics import compute_metrics
+        trades = [self._trade(-5.0, -0.05, i) for i in range(3)]
+        eq = pd.Series([100_000.0, 99_000.0, 98_000.0],
+                       index=pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03"]))
+        m = compute_metrics("s", "p", trades, eq)
+        assert m.kelly_pct == 0.0, "no winners -> Kelly must be 0, not a crash"
+        assert m.win_rate == 0.0
+        assert m.n_trades == 3
+
+    def test_all_winning_trades_does_not_crash(self):
+        import pandas as pd
+        from backtester.metrics import compute_metrics
+        trades = [self._trade(5.0, 0.05, i) for i in range(3)]
+        eq = pd.Series([100_000.0, 101_000.0, 102_000.0],
+                       index=pd.to_datetime(["2024-01-01", "2024-01-02", "2024-01-03"]))
+        m = compute_metrics("s", "p", trades, eq)
+        assert m.win_rate == 1.0
+        assert m.profit_factor == float("inf")

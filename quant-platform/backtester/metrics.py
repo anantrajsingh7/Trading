@@ -61,10 +61,14 @@ def compute_metrics(
     total_losses = abs(sum(t.pnl for t in losers))
     m.profit_factor = total_wins / total_losses if total_losses > 0 else float("inf")
 
-    # Kelly %
-    if m.avg_loss_pct > 0:
+    # Kelly % — guard the actual divisor. A stock whose backtest produced
+    # no winning trades has avg_win_loss_ratio == 0; Kelly is then 0
+    # ("never bet"), not a division by zero.
+    if m.avg_loss_pct > 0 and m.avg_win_loss_ratio > 0:
         m.kelly_pct = m.win_rate - (m.loss_rate / m.avg_win_loss_ratio)
         m.kelly_pct = max(0.0, m.kelly_pct)
+    else:
+        m.kelly_pct = 0.0
 
     # Expectancy (R multiples approximation)
     m.expectancy = m.win_rate * m.avg_win_pct - m.loss_rate * m.avg_loss_pct
