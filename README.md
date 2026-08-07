@@ -134,6 +134,34 @@ is arithmetic. `run_rotation.py --allow-long-holds` adds weekly/fortnightly/
 monthly variants that breach the 48-hour cap deliberately, so the trade-off can
 be measured rather than argued about.
 
+### Phase 11 — the regime gate
+
+Every rejected family is long-only, and the training window fell. Random entries
+in the same markets also lost money, which makes *"the entries are bad"* and
+*"being long was bad"* observationally similar — and only one of those is fixable
+by a filter. `scripts/run_regime_gate.py` separates them, in two steps:
+
+1. **Does the label carry information?** The same signals, grouped by the regime
+   they fired in. If uptrend signals returned what downtrend signals returned,
+   no gate built on these labels can help and step 2 is measuring noise.
+2. **Does a gate do work?** Five presets — fixed in `regime_gate.PRESETS`,
+   written before any result was seen — scored by **what they reject** as well as
+   what they keep.
+
+A regime filter is the easiest thing here to fool yourself with: ~580 days, a
+handful of plausible definitions, and total freedom in choosing which labels
+count as "allowed". Three structural defences:
+
+- allowed-label sets are **declared up front**, never chosen from performance;
+- a gate is judged on `separation` (kept minus rejected) — a gate whose rejects
+  were fine is discarding trades at random, and a separation below a quarter of
+  the round-trip cost is reported as *"a smaller sample, not a filter"*;
+- `share_kept` and `n_kept` sit beside every return figure, so a flattering mean
+  on 4% of the signals cannot pass unnoticed.
+
+Labels are shifted one day and volatility quantiles are expanding, so a label
+never sees the day it labels.
+
 ### Why it fails
 
 The realistic round-trip cost is **77 bps**. Gross forward returns are around
