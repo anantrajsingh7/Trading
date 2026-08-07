@@ -1,25 +1,20 @@
-# Swing Scan — Thursday, August 06, 2026
+# Swing Scan — Friday, August 07, 2026
 
 **Regime:** BULL STRONG (scale 100%)  
 **Account:** €30,000 | Risk/trade €300 | Max open 5
 
-> 5 VALIDATED setup(s) + 3 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
+> 2 VALIDATED setup(s) + 3 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
 
 | Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | BelowHigh | vsEMA20 | Qty |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **WELL** | ✅ | ema_pullback | €237.25 | €229.95 | €260.98 | 3.2:1 | 58% | 4.28 | 77 | 5.9% | +0.1% | 12 |
-| **AMGN** | ✅ | volume_breakout | €407.83 | €379.28 | €448.61 | 1.4:1 | 71% | 3.83 | 82 | 0.0% | +7.9% | 7 |
-| **AIZ** | ✅ | minervini_vcp | €301.57 | €277.44 | €331.73 | 1.3:1 | 56% | 4.56 | 91 | 0.0% | +7.9% | 9 |
-| **GS** | ✅ | ema_pullback | €1,060.38 | €1,017.76 | €1,166.42 | 2.5:1 | 50% | 2.15 | 79 | 8.0% | +1.1% | 2 |
-| **MNST** | ⚠ earnings in 0d | ema_pullback | €94.46 | €90.24 | €103.91 | 2.2:1 | 50% | 1.77 | 87 | 5.5% | -1.1% | 31 |
-| **CPAY** | ✅ | minervini_vcp | €394.53 | €362.97 | €433.98 | 1.3:1 | 67% | 1.51 | 87 | 0.5% | +5.1% | 7 |
-| **BAX** | ⚠ only 1 hist. trades | minervini_vcp | €27.33 | €25.14 | €30.06 | 1.3:1 | 100% | inf | 92 | 3.6% | +11.8% | 109 |
-| **PH** | ⚠ RS rank 70; earnings in 0d | volume_breakout | €996.90 | €927.12 | €1,096.59 | 1.4:1 | 85% | 13.89 | 70 | 2.3% | +2.5% | 3 |
+| **AIZ** | ✅ | minervini_vcp | €296.40 | €272.69 | €326.04 | 1.3:1 | 56% | 4.33 | 87 | 1.7% | +5.4% | 10 |
+| **FFIV** | ✅ | ema_pullback | €413.07 | €393.33 | €454.38 | 2.1:1 | 50% | 1.64 | 92 | 4.2% | +1.9% | 7 |
+| **CRL** | ⚠ only 4 hist. trades | minervini_vcp | €265.51 | €244.27 | €292.06 | 1.3:1 | 75% | 7.04 | 95 | 0.0% | +13.7% | 11 |
+| **LLY** | ⚠ win rate 32% | ema_pullback | €1,191.94 | €1,133.59 | €1,311.13 | 2.0:1 | 32% | 1.85 | 85 | 3.5% | +2.0% | 2 |
+| **MRK** | ⚠ win rate 42% | ema_pullback | €128.37 | €123.95 | €141.21 | 2.9:1 | 42% | 1.53 | 88 | 2.6% | +0.5% | 23 |
 
 ## Expert System — enhanced_ema_pullback (PAPER)
 
-| Stock | Buy-stop Entry | Initial Stop | Exit (3.5×ATR trail) | RS | Qty |
-|---|---|---|---|---|---|
-| **JNJ** | €257.85 | €248.88 (−3.5%) | close − €21.80 | 81 | 11 |
+_No expert setups today — the reclaim entry is selective; no signal is a signal._
 
-_Generated 2026-08-06 09:42 — research only, not financial advice._
+_Generated 2026-08-07 09:07 — research only, not financial advice._
