@@ -39,9 +39,12 @@ log = get_logger("swing_dashboard")
 _ROOT = Path(__file__).resolve().parent
 
 MARKET = "INDIA" if (len(sys.argv) > 1 and sys.argv[1].lower() == "india") else "US"
-CUR = "₹" if MARKET == "INDIA" else "€"
+# Prices are quoted in the LOCAL market currency (USD for US stocks);
+# the account and risk budget are in the account currency (EUR).
+CUR = "₹" if MARKET == "INDIA" else "$"          # price/quote currency
+ACCT_CUR = "₹" if MARKET == "INDIA" else "€"     # account currency
 ACCOUNT = 500_000 if MARKET == "INDIA" else 30_000
-MAX_RISK = 5_000 if MARKET == "INDIA" else 300   # hard cap per trade
+MAX_RISK = 5_000 if MARKET == "INDIA" else 300   # hard cap per trade (account ccy)
 
 # Only the strategies that passed walk-forward / made money in backtest.
 # mean_reversion (loses money) and momentum (fires nothing) are excluded.
@@ -83,14 +86,33 @@ def _regime_color(r):
 
 def _extension(df) -> tuple[float, float]:
     """(% below 52-week high, % above EMA20) — the 'am I chasing?' check.
-    0% from high = at a 52-week high; >10% above EMA20 = extended."""
+
+    The 52-week high is the highest INTRADAY high, matching the convention
+    every quote site uses. Using closing prices understates the distance
+    from the high and made the board disagree with the user's broker.
+    """
     c = df["close"]
-    hi52 = float(c.tail(252).max())
+    highs = df["high"] if "high" in df else c
+    hi52 = float(highs.tail(252).max())
     last = float(c.iloc[-1])
     ema20 = float(c.ewm(span=20, adjust=False).mean().iloc[-1])
     from_high = (hi52 - last) / hi52 * 100 if hi52 > 0 else 0.0
     above_ema = (last - ema20) / ema20 * 100 if ema20 > 0 else 0.0
     return from_high, above_ema
+
+
+def _eurusd() -> float:
+    """USD per 1 EUR. US stocks quote in USD; the account is in EUR, so
+    the risk budget must be converted before sizing. Falls back to 1.08."""
+    try:
+        fx = get_data("EURUSD=X", period="1mo")
+        if fx is not None and len(fx):
+            rate = float(fx["close"].iloc[-1])
+            if 0.5 < rate < 2.0:
+                return rate
+    except Exception as e:
+        log.warning("EURUSD fetch failed (%s) — using 1.08", e)
+    return 1.08
 
 
 def _rs_ranks(enriched: dict) -> dict:
@@ -140,6 +162,8 @@ def build():
     scale_pct = {"BULL_STRONG": 100, "BULL_MODERATE": 75, "NEUTRAL": 50,
                  "BEAR_MODERATE": 25, "BEAR_STRONG": 0}.get(regime, 50)
     rcolor = _regime_color(regime)
+
+    FX = _eurusd()
 
     # ── Fetch + enrich universe ────────────────────────────────────
     universe = get_universe(cfg, MARKET)
@@ -272,9 +296,9 @@ def build():
             risk_ps = trigger - estop
             if risk_ps <= 0:
                 continue
-            eqty = max(1, int(min(ACCOUNT * 0.01, MAX_RISK) / risk_ps))
-            if eqty * trigger > ACCOUNT * 0.10:
-                eqty = max(1, int(ACCOUNT * 0.10 / trigger))
+            eqty = max(1, int(min(ACCOUNT * 0.01, MAX_RISK) * FX / risk_ps))
+            if eqty * trigger > ACCOUNT * 0.10 * FX:
+                eqty = max(1, int(ACCOUNT * 0.10 * FX / trigger))
             expert_rows.append(dict(
                 ticker=t.replace(".NS", ""), entry=trigger, stop=estop,
                 stop_pct=risk_ps / trigger * 100, trail_dist=3.5 * eatr,
@@ -283,12 +307,18 @@ def build():
 
     # ── Position sizing (1% risk, hard-capped at MAX_RISK,
     #    position capped at 10% of account) ────────────────────────
+    # Prices are USD; the budget is EUR. Convert the budget to the quote
+    # currency before dividing by a USD risk-per-share, otherwise every
+    # position comes out ~8% too small.
     risk_eur = min(ACCOUNT * 0.01 * (scale_pct / 100), MAX_RISK)
+    risk_quote = risk_eur * FX                    # EUR budget -> USD
+    max_pos_quote = ACCOUNT * 0.10 * FX           # EUR cap    -> USD
     for r in ranked:
-        qty = max(1, int(risk_eur / r["risk_ps"])) if r["risk_ps"] > 0 else 1
-        if qty * r["entry"] > ACCOUNT * 0.10:
-            qty = max(1, int(ACCOUNT * 0.10 / r["entry"]))
+        qty = max(1, int(risk_quote / r["risk_ps"])) if r["risk_ps"] > 0 else 1
+        if qty * r["entry"] > max_pos_quote:
+            qty = max(1, int(max_pos_quote / r["entry"]))
         r["qty"] = qty
+        r["risk_acct"] = qty * r["risk_ps"] / FX  # actual risk in EUR
 
     # ── Build HTML ─────────────────────────────────────────────────
     rows = ""
@@ -397,8 +427,8 @@ def build():
   <div style="color:var(--muted);margin-top:6px;font-size:13px;">
     {today.strftime('%A, %B %d, %Y')} at {datetime.now().strftime('%H:%M')} &nbsp;|&nbsp;
     <span class="badge" style="color:{rcolor};border-color:{rcolor};">{regime.replace('_',' ')}</span>
-    &nbsp;Scale {scale_pct}% &nbsp;|&nbsp; Account {CUR}{ACCOUNT:,} &nbsp;|&nbsp;
-    Risk/trade {CUR}{risk_eur:,.0f} &nbsp;|&nbsp; Max open {MAX_OPEN} (heat {CUR}{risk_eur*MAX_OPEN:,.0f})
+    &nbsp;Scale {scale_pct}% &nbsp;|&nbsp; Account {ACCT_CUR}{ACCOUNT:,} &nbsp;|&nbsp;
+    Risk/trade {ACCT_CUR}{risk_eur:,.0f} &nbsp;|&nbsp; Max open {MAX_OPEN} (heat {ACCT_CUR}{risk_eur*MAX_OPEN:,.0f})
     &nbsp;|&nbsp; <span style="color:var(--green);">LIVE + BACKTESTED</span>
   </div>
 </div>
@@ -420,7 +450,7 @@ def build():
       <strong>VALIDATED requires:</strong> historical win rate ≥50%, profit factor ≥1.2, RS rank ≥70 (stock outperforms 70% of universe),
       and no earnings within {EARNINGS_BLACKOUT_DAYS} days. Exit: ATR trailing stop — let winners run (A/B tested: beats fixed targets and partial banking).<br>
       Target is +10% swing goal; R:R compares that to your stop risk. Qty sized to 1% account risk, capped at 10% position.
-      <strong>Never hold more than {MAX_OPEN} positions at once</strong> — total open risk stays ≤ {CUR}{risk_eur*MAX_OPEN:,.0f}.
+      <strong>Never hold more than {MAX_OPEN} positions at once</strong> — total open risk stays ≤ {ACCT_CUR}{risk_eur*MAX_OPEN:,.0f}.
     </div>
   </div>
   {expert_html}
@@ -439,7 +469,7 @@ def build():
     md = [f"# Swing Scan — {today.strftime('%A, %B %d, %Y')}",
           "",
           f"**Regime:** {regime.replace('_', ' ')} (scale {scale_pct}%)  ",
-          f"**Account:** {CUR}{ACCOUNT:,} | Risk/trade {CUR}{risk_eur:,.0f} | Max open {MAX_OPEN}",
+          f"**Account:** {CUR}{ACCOUNT:,} | Risk/trade {ACCT_CUR}{risk_eur:,.0f} | Max open {MAX_OPEN}",
           "",
           f"> {banner}",
           "",
