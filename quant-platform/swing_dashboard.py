@@ -469,7 +469,8 @@ def build():
     md = [f"# Swing Scan — {today.strftime('%A, %B %d, %Y')}",
           "",
           f"**Regime:** {regime.replace('_', ' ')} (scale {scale_pct}%)  ",
-          f"**Account:** {CUR}{ACCOUNT:,} | Risk/trade {ACCT_CUR}{risk_eur:,.0f} | Max open {MAX_OPEN}",
+          f"**Account:** {ACCT_CUR}{ACCOUNT:,} | Risk/trade {ACCT_CUR}{risk_eur:,.0f} "
+          f"| Max open {MAX_OPEN} | Prices in {CUR} @ EURUSD {FX:.3f}",
           "",
           f"> {banner}",
           "",
