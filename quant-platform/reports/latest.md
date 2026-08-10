@@ -1,20 +1,24 @@
-# Swing Scan — Friday, August 07, 2026
+# Swing Scan — Monday, August 10, 2026
 
 **Regime:** BULL STRONG (scale 100%)  
 **Account:** €30,000 | Risk/trade €300 | Max open 5
 
-> 2 VALIDATED setup(s) + 3 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
+> 6 VALIDATED setup(s) + 3 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
 
 | Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | BelowHigh | vsEMA20 | Qty |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **AIZ** | ✅ | minervini_vcp | €296.40 | €272.69 | €326.04 | 1.3:1 | 56% | 4.33 | 87 | 1.7% | +5.4% | 10 |
-| **FFIV** | ✅ | ema_pullback | €413.07 | €393.33 | €454.38 | 2.1:1 | 50% | 1.64 | 92 | 4.2% | +1.9% | 7 |
-| **CRL** | ⚠ only 4 hist. trades | minervini_vcp | €265.51 | €244.27 | €292.06 | 1.3:1 | 75% | 7.04 | 95 | 0.0% | +13.7% | 11 |
-| **LLY** | ⚠ win rate 32% | ema_pullback | €1,191.94 | €1,133.59 | €1,311.13 | 2.0:1 | 32% | 1.85 | 85 | 3.5% | +2.0% | 2 |
-| **MRK** | ⚠ win rate 42% | ema_pullback | €128.37 | €123.95 | €141.21 | 2.9:1 | 42% | 1.53 | 88 | 2.6% | +0.5% | 23 |
+| **WELL** | ✅ | ema_pullback | €236.92 | €222.70 | €260.61 | 1.7:1 | 56% | 4.16 | 75 | 6.0% | -0.0% | 12 |
+| **AIZ** | ✅ | minervini_vcp | €289.55 | €273.01 | €318.50 | 1.8:1 | 56% | 4.02 | 83 | 4.0% | +2.7% | 10 |
+| **FITB** | ✅ | ema_pullback | €57.09 | €55.27 | €62.80 | 3.1:1 | 53% | 1.71 | 77 | 3.8% | +0.2% | 52 |
+| **SPG** | ⚠ earnings in 0d | ema_pullback | €222.91 | €213.58 | €245.20 | 2.4:1 | 55% | 2.61 | 73 | 5.8% | -1.4% | 13 |
+| **PH** | ✅ | minervini_vcp | €1,073.87 | €987.96 | €1,181.26 | 1.3:1 | 67% | 4.48 | 84 | 0.0% | +8.4% | 2 |
+| **MNST** | ✅ | minervini_vcp | €97.50 | €93.78 | €107.25 | 2.6:1 | 50% | 1.29 | 90 | 2.4% | +1.5% | 30 |
+| **GS** | ✅ | ema_pullback | €1,039.61 | €1,003.61 | €1,143.57 | 2.9:1 | 50% | 2.06 | 76 | 9.8% | -0.7% | 2 |
+| **BALL** | ⚠ win rate 38%; PF 0.44; RS rank 56 | ema_pullback | €63.45 | €61.46 | €69.80 | 3.2:1 | 38% | 0.44 | 56 | 5.7% | +0.1% | 47 |
+| **ABBV** | ⚠ win rate 32% | ema_pullback | €246.04 | €233.93 | €270.64 | 2.0:1 | 32% | 1.54 | 72 | 6.6% | -1.4% | 12 |
 
 ## Expert System — enhanced_ema_pullback (PAPER)
 
 _No expert setups today — the reclaim entry is selective; no signal is a signal._
 
-_Generated 2026-08-07 09:07 — research only, not financial advice._
+_Generated 2026-08-10 09:28 — research only, not financial advice._
