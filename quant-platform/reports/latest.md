@@ -17,4 +17,11 @@
 
 _No expert setups today — the reclaim entry is selective; no signal is a signal._
 
-_Generated 2026-08-11 09:04 — research only, not financial advice._
+## INSTITUTIONAL MOMENTUM / TREND SETUPS
+
+**NO QUALIFYING INSTITUTIONAL MOMENTUM SETUPS TODAY.**
+
+_Regime BULL_STRONG · volatility NORMAL. Rules were not relaxed._
+
+
+_Generated 2026-08-11 11:57 — research only, not financial advice._
