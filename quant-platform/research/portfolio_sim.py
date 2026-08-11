@@ -54,6 +54,22 @@ class SimConfig:
     require_regime_gate: bool = True
     rs_min: float = 80.0
     entry_type: str = "market"            # "market" (existing strats) | "stop" (enhanced)
+    # Volatility scaling (institutional_momentum_trend). Defaults are
+    # inert: without a vix series, vol_mult is always 1.0, so existing
+    # comparisons are unchanged.
+    vix_elevated: float = 25.0            # >= this -> 50% risk
+    vix_extreme: float = 35.0             # >= this -> no new trades
+
+
+def vol_multiplier(vix_value: float | None, cfg: "SimConfig") -> float:
+    """NORMAL=1.0 | ELEVATED=0.5 | EXTREME=0.0 (no new trades)."""
+    if vix_value is None or not np.isfinite(vix_value):
+        return 1.0
+    if vix_value >= cfg.vix_extreme:
+        return 0.0
+    if vix_value >= cfg.vix_elevated:
+        return 0.5
+    return 1.0
 
 
 @dataclass
@@ -74,6 +90,7 @@ def simulate(
     eurusd: pd.Series,
     earnings: dict[str, list],
     cfg: SimConfig,
+    vix: pd.Series | None = None,
     start: date | None = None,
     end: date | None = None,
 ) -> SimResult:
@@ -156,7 +173,14 @@ def simulate(
 
     for day in calendar:
         reg = regime.get(day, "NEUTRAL")
-        alloc = REGIME_ALLOC.get(reg, 0.0)
+        vix_today = None
+        if vix is not None:
+            try:
+                vix_today = float(vix.asof(pd.Timestamp(day)))
+            except Exception:
+                vix_today = None
+        vmult = vol_multiplier(vix_today, cfg)
+        alloc = REGIME_ALLOC.get(reg, 0.0) * vmult
 
         # ── 1) EXITS first — against YESTERDAY's active stop ───────
         for t in list(positions):
@@ -223,6 +247,9 @@ def simulate(
             if REGIME_ALLOC.get(reg_now, 0) == 0 and cfg.require_regime_gate:
                 rejects.append(dict(date=day, ticker=t, reason="REGIME_BEAR"))
                 continue
+            if vmult == 0.0:
+                rejects.append(dict(date=day, ticker=t, reason="VOL_EXTREME"))
+                continue
             if len(positions) >= cfg.max_positions or t in positions:
                 rejects.append(dict(date=day, ticker=t, reason="MAX_POSITIONS"))
                 continue
@@ -230,7 +257,7 @@ def simulate(
                 (pp["entry_px"] - pp["active_stop"]) * pp["shares"] / r / eq
                 for pp in positions.values() if pp["active_stop"] < pp["entry_px"]
             )
-            risk_eur = eq * cfg.risk_per_trade * REGIME_ALLOC.get(reg_now, 0)
+            risk_eur = eq * cfg.risk_per_trade * REGIME_ALLOC.get(reg_now, 0) * vmult
             if open_heat + risk_eur / eq > cfg.max_heat:
                 rejects.append(dict(date=day, ticker=t, reason="HEAT_CAP"))
                 continue

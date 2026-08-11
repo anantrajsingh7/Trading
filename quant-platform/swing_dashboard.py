@@ -164,6 +164,11 @@ def build():
     rcolor = _regime_color(regime)
 
     FX = _eurusd()
+    try:
+        _vdf = get_data('^VIX', period='3mo')
+        VIX = float(_vdf['close'].iloc[-1]) if _vdf is not None and len(_vdf) else None
+    except Exception:
+        VIX = None
 
     # ── Fetch + enrich universe ────────────────────────────────────
     universe = get_universe(cfg, MARKET)
@@ -320,6 +325,21 @@ def build():
         r["qty"] = qty
         r["risk_acct"] = qty * r["risk_ps"] / FX  # actual risk in EUR
 
+    # ── SECTION 2: institutional momentum (independent research book) ──
+    from reporting.institutional_section import build_section as _inst_section
+    _SECTORS = {}
+    try:
+        from research.run_comparison import SECTORS as _S
+        _SECTORS = _S
+    except Exception:
+        pass
+    try:
+        inst_html, inst_md = _inst_section(
+            enriched, rs_ranks, regime, FX, _SECTORS, _days_to_earnings, VIX)
+    except Exception as e:
+        log.warning("institutional section failed: %s", e)
+        inst_html, inst_md = "", []
+
     # ── Build HTML ─────────────────────────────────────────────────
     rows = ""
     for r in ranked[:20]:
@@ -454,6 +474,30 @@ def build():
     </div>
   </div>
   {expert_html}
+  {inst_html}
+  <div class="section-title">Market Regime</div>
+  <div class="card">
+    <table><thead><tr><th>Signal</th><th>Reading</th></tr></thead><tbody>
+      <tr><td>SPY / QQQ trend</td><td>{regime.replace('_',' ')}</td></tr>
+      <tr><td>Breadth &amp; trend composite</td><td>scale {scale_pct}%</td></tr>
+      <tr><td>VIX</td><td>{('%.1f' % VIX) if VIX else 'unavailable'}</td></tr>
+      <tr><td>Risk multiplier (swing book)</td><td>{scale_pct/100:.2f}×</td></tr>
+      <tr><td>EUR/USD used for sizing</td><td>{FX:.4f}</td></tr>
+    </tbody></table>
+  </div>
+  <div class="section-title">Portfolio Risk Summary</div>
+  <div class="card">
+    <table><thead><tr><th>Book</th><th>Risk / trade</th><th>Max open</th><th>Max heat</th></tr></thead>
+    <tbody>
+      <tr><td>Swing (production)</td><td>{ACCT_CUR}{risk_eur:,.0f}</td><td>{MAX_OPEN}</td>
+          <td>{ACCT_CUR}{risk_eur*MAX_OPEN:,.0f}</td></tr>
+      <tr><td>Institutional momentum (paper)</td><td>{ACCT_CUR}150 base</td><td>4</td>
+          <td>{ACCT_CUR}600</td></tr>
+    </tbody></table>
+    <div class="legend">Open positions and live cash are not tracked by the scanner —
+      check your broker before acting. Slots shown are the system's caps, not your
+      current exposure.</div>
+  </div>
   <div style="text-align:center;color:var(--muted);font-size:11px;margin-top:24px;padding-top:16px;border-top:1px solid var(--border);">
     Quant Platform — research only, not financial advice — {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}
   </div>
@@ -494,6 +538,7 @@ def build():
                       f"| close − {CUR}{r['trail_dist']:,.2f} | {r['rs']:.0f} | {r['qty']} |")
     else:
         md.append("_No expert setups today — the reclaim entry is selective; no signal is a signal._")
+    md += inst_md
     md += ["", f"_Generated {datetime.now().strftime('%Y-%m-%d %H:%M')} — research only, not financial advice._"]
     (reports / f"{prefix}latest.md").write_text("\n".join(md), encoding="utf-8")
     (reports / f"{prefix}latest.html").write_text(html, encoding="utf-8")

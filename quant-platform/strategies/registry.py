@@ -15,6 +15,7 @@ from strategies.pullback       import EMApullbackStrategy
 from strategies.momentum_strat import MomentumStrategy
 from strategies.mean_reversion import MeanReversionStrategy
 from strategies.enhanced_ema   import EnhancedEMAPullbackStrategy
+from strategies.institutional_momentum import InstitutionalMomentumStrategy
 
 _REGISTRY: dict[str, BaseStrategy] = {}
 
@@ -30,6 +31,7 @@ _register(EMApullbackStrategy())
 _register(MomentumStrategy())
 _register(MeanReversionStrategy())
 _register(EnhancedEMAPullbackStrategy())   # research only — not in production scan
+_register(InstitutionalMomentumStrategy())  # research only — not in production scan
 
 
 def get_strategy(name: str) -> BaseStrategy:
