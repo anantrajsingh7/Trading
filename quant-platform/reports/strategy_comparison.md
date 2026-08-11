@@ -6,19 +6,19 @@ Universe: 107 liquid US stocks | Period: 6y | Account €30,000 | Risk 0.50% | M
 
 | Strategy | Trades | OOS | Win% | PF | Expect €/tr | CAGR | MaxDD | Sharpe | WF+ | Acceptance |
 |---|---|---|---|---|---|---|---|---|---|---|
-| ema_pullback | 193 | 59 | 27% | 1.11 | 6.49 | 0.7% | -8.2% | -0.26 | 100% | INSUFFICIENT_SAMPLE |
-| minervini_vcp | 138 | 44 | 38% | 1.31 | 14.47 | 1.1% | -6.7% | -0.21 | 50% | INSUFFICIENT_SAMPLE |
+| ema_pullback | 193 | 59 | 27% | 1.11 | 6.51 | 0.7% | -8.2% | -0.26 | 100% | INSUFFICIENT_SAMPLE |
+| minervini_vcp | 139 | 44 | 37% | 1.30 | 14.04 | 1.1% | -6.8% | -0.21 | 50% | INSUFFICIENT_SAMPLE |
 | volume_breakout | 125 | 33 | 38% | 1.14 | 5.46 | 0.4% | -5.4% | -0.63 | 100% | INSUFFICIENT_SAMPLE |
 | combined | 190 | 50 | 30% | 1.07 | 3.64 | 0.4% | -8.7% | -0.35 | 50% | INSUFFICIENT_SAMPLE |
 | enhanced_ema_pullback | 100 | 24 | 37% | 2.09 | 52.16 | 2.7% | -6.0% | 0.19 | 50% | INSUFFICIENT_SAMPLE |
 
 ## Existing ema_pullback at production 1% risk (separate — not risk-comparable)
-Trades 180 | PF 1.03 | CAGR 0.3% | MaxDD -13.5%
+Trades 180 | PF 1.03 | CAGR 0.3% | MaxDD -13.4%
 
 ## Practical constraints (1% risk, 5 positions, 5% heat — realistic costs)
 | Strategy | Trades | Win% | PF | Expect €/tr | CAGR | MaxDD | Sharpe |
 |---|---|---|---|---|---|---|---|
-| ema_pullback | 231 | 29% | 1.18 | 14.13 | 1.8% | -12.9% | 0.00 |
+| ema_pullback | 232 | 28% | 1.17 | 13.65 | 1.7% | -13.0% | -0.01 |
 | enhanced_ema_pullback | 106 | 35% | 1.51 | 38.85 | 2.2% | -9.0% | 0.06 |
 
 ## Decision basis
