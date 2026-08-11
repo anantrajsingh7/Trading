@@ -1,35 +1,36 @@
-# enhanced_ema_pullback — Results (2026-08-04)
+# enhanced_ema_pullback — Results (2026-08-11)
 
 Acceptance: **INSUFFICIENT_SAMPLE**  (failed gates: oos_trades,wf_windows,concentration)
 
 Main config: entry=reclaim, stop=swing_low−0.25×ATR, trail=3.5×ATR, no profit target
 
-Signals 801 | Filled 102 | Win 35% | PF 1.99 | Expectancy €48.26/trade | CAGR 2.6% | MaxDD -6.1% | Sharpe 0.15 | Sortino 0.17
+Signals 801 | Filled 100 | Win 37% | PF 2.09 | Expectancy €52.16/trade | CAGR 2.7% | MaxDD -6.0% | Sharpe 0.19 | Sortino 0.21
 
-Costs €: {'commission': 183.2654402153724, 'spread_slip': 306.1824514928021, 'fx': 308.91599749023175, 'gap_loss': 240.8761528276685}
+Costs €: {'commission': 179.8706003044363, 'spread_slip': 299.78470767030547, 'fx': 302.65963589977093, 'gap_loss': 242.37442936469773}
 
 ## Parameter stability (top rows by profit factor)
 
 entry_mode  stop_buffer  trail  filled  win_rate  profit_factor     cagr    max_dd
-   reclaim         0.50    3.5      93  0.354839       2.069221 0.025669 -0.056951
-   reclaim         0.25    3.5     102  0.352941       1.986304 0.025780 -0.060526
-   reclaim         0.00    3.5     109  0.321101       1.800147 0.025326 -0.058718
-   reclaim         0.50    3.0     103  0.359223       1.668109 0.018950 -0.060106
-  reversal         0.50    3.5     118  0.305085       1.647838 0.020698 -0.056128
-   reclaim         0.25    3.0     113  0.336283       1.629891 0.019214 -0.065446
-  reversal         0.50    3.0     129  0.310078       1.571625 0.019846 -0.062114
-   reclaim         0.00    3.0     122  0.319672       1.475440 0.017175 -0.065217
+   reclaim         0.50    3.5      91  0.373626       2.170969 0.026967 -0.056861
+   reclaim         0.25    3.5     100  0.370000       2.088231 0.027207 -0.060414
+   reclaim         0.00    3.5     108  0.333333       1.869954 0.026559 -0.058687
+   reclaim         0.50    3.0     101  0.376238       1.736259 0.020145 -0.060200
+  reversal         0.50    3.5     116  0.318966       1.712186 0.022197 -0.056080
+   reclaim         0.25    3.0     111  0.351351       1.698235 0.020491 -0.065114
+  reversal         0.50    3.0     127  0.322835       1.621249 0.021175 -0.061995
+   reclaim         0.00    3.0     121  0.330579       1.553217 0.019325 -0.064937
 
 ## Rejection reasons (realistic run)
 
 reason
-RS_LOW                    410
+RS_LOW                    411
 REGIME_BEAR               133
-MAX_POSITIONS              81
-EARNINGS_SOON              47
+MAX_POSITIONS              82
+EARNINGS_SOON              46
 STOP_TOO_WIDE               8
 SECTOR_CAP                  6
 OPEN_GAP_ABOVE_TRIGGER      5
+EARNINGS_UNKNOWN            1
 
 Stock-level stats: samples below 25 trades are INSUFFICIENT_SAMPLE
 by policy; strategy-level OOS results drive the decision.
