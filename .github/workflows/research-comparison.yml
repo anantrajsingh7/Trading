@@ -40,6 +40,12 @@ jobs:
           CI: "true"
         run: python research/run_institutional_backtest.py
 
+      - name: Run dual momentum rotation backtest
+        working-directory: quant-platform
+        env:
+          CI: "true"
+        run: python research/run_dual_momentum.py
+
       - name: Commit research reports
         run: |
           git config user.name "research-bot"
@@ -60,7 +66,13 @@ jobs:
                      quant-platform/reports/institutional_regime_performance.csv \
                      quant-platform/reports/institutional_sector_performance.csv \
                      quant-platform/reports/institutional_yearly_performance.csv \
-                     quant-platform/reports/institutional_cost_comparison.csv
+                     quant-platform/reports/institutional_cost_comparison.csv \
+                     quant-platform/reports/rotation_results.md \
+                     quant-platform/reports/rotation_cost_comparison.csv \
+                     quant-platform/reports/rotation_parameter_stability.csv \
+                     quant-platform/reports/rotation_trade_log.csv \
+                     quant-platform/reports/rotation_weights_history.csv \
+                     quant-platform/reports/rotation_equity_curve.csv
           git diff --cached --quiet && exit 0
           git commit -m "Strategy research comparison results [skip ci]"
           for i in 1 2 3; do
