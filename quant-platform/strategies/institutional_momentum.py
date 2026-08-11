@@ -59,6 +59,7 @@ def compute_setup_table(
     df: pd.DataFrame,
     stop_atr_buffer: float = 0.25,
     entry_mode: str = "reclaim",
+    confirm_window: int = 3,
 ) -> pd.DataFrame:
     """
     Causal per-bar table. Columns:
@@ -121,12 +122,24 @@ def compute_setup_table(
     )
 
     # ── Entry confirmation ─────────────────────────────────────────
+    # The reclaim/reversal is a single-day event. Requiring it to coincide
+    # with every other filter on the SAME bar made signals so rare the
+    # strategy could never accumulate the 200 OOS trades its own
+    # acceptance standard demands. confirm_window lets the confirmation
+    # have happened within the last N sessions, provided price is STILL
+    # above EMA20 (setup not broken). Quality is unchanged — the reclaim
+    # must still have occurred, and entry_quality() still rejects
+    # anything extended.
     if entry_mode == "reversal":
         rng = (h - l).replace(0, np.nan)
-        confirm = (c > o) & ((c - l) / rng > 0.5) & (c > c.shift())
-        trigger = h.where(pullback_ok & confirm) * 1.001
+        event = (c > o) & ((c - l) / rng > 0.5) & (c > c.shift())
+        recent = event.rolling(confirm_window).max().astype(bool)
+        confirm = recent & (c > ema20)
+        trigger = h.rolling(confirm_window).max().where(pullback_ok & confirm) * 1.001
     else:  # "reclaim" (primary)
-        confirm = (c > ema20) & (c.shift() <= ema20.shift())
+        event = (c > ema20) & (c.shift() <= ema20.shift())
+        recent = event.rolling(confirm_window).max().astype(bool)
+        confirm = recent & (c > ema20)
         trigger = c.where(pullback_ok & confirm) * 1.001
 
     swing_low = l.rolling(10).min()
@@ -193,9 +206,11 @@ def momentum_quality_score(
 class InstitutionalMomentumStrategy(BaseStrategy):
     """Registry wrapper — reads the last row of the causal setup table."""
 
-    def __init__(self, stop_atr_buffer: float = 0.25, entry_mode: str = "reclaim"):
+    def __init__(self, stop_atr_buffer: float = 0.25, entry_mode: str = "reclaim",
+                 confirm_window: int = 3):
         self.stop_atr_buffer = stop_atr_buffer
         self.entry_mode = entry_mode
+        self.confirm_window = confirm_window
         super().__init__()
 
     @property
@@ -209,7 +224,8 @@ class InstitutionalMomentumStrategy(BaseStrategy):
     def generate_signal(self, df: pd.DataFrame, ticker: str, cfg: dict) -> Optional[Signal]:
         if len(df) < 260:
             return None
-        tab = compute_setup_table(df, self.stop_atr_buffer, self.entry_mode)
+        tab = compute_setup_table(df, self.stop_atr_buffer, self.entry_mode,
+                                  self.confirm_window)
         last = tab.iloc[-1]
         if not bool(last["setup_ok"]):
             return None
