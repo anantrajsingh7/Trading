@@ -340,6 +340,22 @@ def build():
         log.warning("institutional section failed: %s", e)
         inst_html, inst_md = "", []
 
+    # ── Forward signal journal (accumulating OOS record) ──────────
+    try:
+        from reporting.signal_journal import run as _journal_run
+        _sig_rows = [dict(strategy="swing_validated", ticker=r["ticker"],
+                          entry=r["entry"], init_stop=r["stop"],
+                          trail_atr=r["entry"] * 0.08)
+                     for r in ranked if r["status"] == "VALIDATED"]
+        _sig_rows += [dict(strategy="institutional_momentum", ticker=r["ticker"],
+                           entry=r["entry"], init_stop=r["stop"],
+                           trail_atr=r["trail_dist"])
+                      for r in expert_rows]
+        journal_html, journal_md = _journal_run(_sig_rows, raw, today)
+    except Exception as e:
+        log.warning("signal journal failed: %s", e)
+        journal_html, journal_md = "", []
+
     # ── Build HTML ─────────────────────────────────────────────────
     rows = ""
     for r in ranked[:20]:
@@ -475,6 +491,7 @@ def build():
   </div>
   {expert_html}
   {inst_html}
+  {journal_html}
   <div class="section-title">Market Regime</div>
   <div class="card">
     <table><thead><tr><th>Signal</th><th>Reading</th></tr></thead><tbody>
@@ -539,6 +556,7 @@ def build():
     else:
         md.append("_No expert setups today — the reclaim entry is selective; no signal is a signal._")
     md += inst_md
+    md += journal_md
     md += ["", f"_Generated {datetime.now().strftime('%Y-%m-%d %H:%M')} — research only, not financial advice._"]
     (reports / f"{prefix}latest.md").write_text("\n".join(md), encoding="utf-8")
     (reports / f"{prefix}latest.html").write_text(html, encoding="utf-8")
