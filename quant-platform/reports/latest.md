@@ -1,17 +1,20 @@
-# Swing Scan — Monday, August 31, 2026
+# Swing Scan — Tuesday, September 01, 2026
 
 **Regime:** BULL MODERATE (scale 75%)  
 **Account:** €30,000 | Risk/trade €225 | Max open 5 | Prices in $ @ EURUSD 1.080
 
-> No fully validated setups today — 5 watchlist name(s) shown for context. Stay in cash or wait.
+> 6 VALIDATED setup(s) + 2 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
 
 | Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | BelowHigh | vsEMA20 | Qty |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **DELL** | ⚠ earnings in 1d | ema_pullback | $463.11 | $438.68 | $509.42 | 1.9:1 | 53% | 2.62 | 99 | 9.9% | +2.4% | 6 |
-| **CAH** | ⚠ win rate 46% | ema_pullback | $235.31 | $227.06 | $258.84 | 2.9:1 | 46% | 2.31 | 83 | 8.9% | +0.5% | 13 |
-| **NVDA** | ⚠ win rate 29%; RS rank 65 | ema_pullback | $220.24 | $209.62 | $242.26 | 2.1:1 | 29% | 2.19 | 65 | 6.8% | +1.9% | 14 |
-| **SNDK** | ⚠ win rate 43% | ema_pullback | $1,515.42 | $1,462.42 | $1,666.96 | 2.9:1 | 43% | 5.71 | 100 | 35.6% | +1.3% | 2 |
-| **GM** | ⚠ win rate 40% | ema_pullback | $86.47 | $83.41 | $95.12 | 2.8:1 | 40% | 1.66 | 75 | 5.9% | +0.6% | 37 |
+| **BNY** | ✅ | volume_breakout | $161.28 | $149.99 | $177.41 | 1.4:1 | 56% | 7.63 | 91 | 2.7% | +0.5% | 20 |
+| **CVX** | ✅ | volume_breakout | $206.14 | $191.71 | $226.75 | 1.4:1 | 62% | 4.30 | 80 | 2.3% | +3.8% | 15 |
+| **MPC** | ✅ | minervini_vcp | $373.32 | $344.19 | $410.65 | 1.3:1 | 62% | 5.30 | 97 | 0.9% | +7.2% | 8 |
+| **VLO** | ✅ | minervini_vcp | $358.92 | $331.65 | $394.81 | 1.3:1 | 71% | 6.09 | 98 | 1.1% | +6.7% | 8 |
+| **KO** | ✅ | volume_breakout | $88.67 | $82.46 | $97.54 | 1.4:1 | 50% | 1.42 | 76 | 4.1% | +0.1% | 36 |
+| **CRWD** | ✅ | minervini_vcp | $231.00 | $212.52 | $254.10 | 1.3:1 | 50% | 1.43 | 97 | 1.2% | +11.7% | 13 |
+| **CAH** | ⚠ win rate 46% | ema_pullback | $234.62 | $227.00 | $258.08 | 3.1:1 | 46% | 2.30 | 83 | 9.2% | +0.3% | 13 |
+| **MU** | ⚠ win rate 42% | ema_pullback | $958.73 | $904.17 | $1,054.60 | 1.8:1 | 42% | 3.42 | 100 | 23.6% | +2.9% | 3 |
 
 ## Expert System — enhanced_ema_pullback (PAPER)
 
@@ -19,21 +22,17 @@ _No expert setups today — the reclaim entry is selective; no signal is a signa
 
 ## INSTITUTIONAL MOMENTUM / TREND SETUPS
 
-| Stock | Status | Score | Entry Quality | Entry | Stop | Trail | RS | 60D | Pullback | RelVol | Sector | Earnings | Qty | €Risk |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **XOM** | 🔴 REJECTED (RS 78 < 80) | 70.8 | IDEAL | $159.28 | $154.45 | close−$10.43 | 78 | +5.3% | 5.6% | 0.74 | Energy | 60d | 20 | €89 |
+**NO QUALIFYING INSTITUTIONAL MOMENTUM SETUPS TODAY.**
 
-**XOM** (score 70.8)
-- WHY IT QUALIFIES: RS 78 · Stage-2 uptrend · 5.6% controlled pullback · volume contracted 26% · EMA20 reclaimed · regime BULL_MODERATE · earnings 60d
-- WHAT INVALIDATES IT: entry gaps >2% above $159.28 · close below $154.45 · regime turns bear · earnings date changes
+_Regime BULL_MODERATE · volatility NORMAL. Rules were not relaxed._
 
 
 ## Forward Signal Journal
 
-0/20 closed — 20 more before the forward record means anything.  Tracked 0 · open 0 · closed 0
+0/20 closed — 20 more before the forward record means anything.  Tracked 6 · open 6 · closed 0
 
 - Win rate: —
 - Expectancy: —R per trade
 - Profit factor: —
 
-_Generated 2026-08-31 15:59 — research only, not financial advice._
+_Generated 2026-09-01 13:13 — research only, not financial advice._
