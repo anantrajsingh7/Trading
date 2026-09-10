@@ -1,39 +1,47 @@
-# Swing Scan — Wednesday, September 09, 2026
+# Swing Scan — Thursday, September 10, 2026
 
 **Regime:** BULL MODERATE (scale 75%)  
 **Account:** €30,000 | Risk/trade €225 | Max open 5 | Prices in $ @ EURUSD 1.080
 
-> 1 VALIDATED setup(s) + 4 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
+> 4 VALIDATED setup(s) + 2 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
 
 | Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | BelowHigh | vsEMA20 | Qty |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **WELL** | ✅ | ema_pullback | $237.25 | $226.61 | $260.98 | 2.2:1 | 60% | 4.14 | 80 | 6.7% | -0.2% | 13 |
-| **NTAP** | ⚠ win rate 40% | ema_pullback | $189.13 | $182.20 | $208.04 | 2.7:1 | 40% | 1.79 | 95 | 9.5% | +0.7% | 17 |
-| **ASML** | ⚠ win rate 42% | ema_pullback | $1,764.85 | $1,675.46 | $1,941.33 | 2.0:1 | 42% | 2.29 | 93 | 11.6% | +2.2% | 1 |
-| **XOM** | ⚠ win rate 31%; PF 1.04 | ema_pullback | $160.66 | $155.15 | $176.73 | 2.9:1 | 31% | 1.04 | 84 | 7.7% | +0.4% | 20 |
-| **ANET** | ⚠ win rate 31%; PF 0.72 | ema_pullback | $194.96 | $186.01 | $214.46 | 2.2:1 | 31% | 0.72 | 92 | 9.3% | +1.7% | 16 |
+| **AMP** | ✅ | volume_breakout | $551.88 | $513.25 | $607.07 | 1.4:1 | 67% | 6.80 | 77 | 3.6% | -0.5% | 5 |
+| **BAC** | ✅ | ema_pullback | $62.67 | $60.39 | $68.94 | 2.7:1 | 61% | 3.47 | 81 | 3.4% | +0.7% | 51 |
+| **JPM** | ✅ | ema_pullback | $354.71 | $338.13 | $390.18 | 2.1:1 | 50% | 2.47 | 75 | 3.2% | -0.4% | 9 |
+| **AAPL** | ✅ | volume_breakout | $315.34 | $293.27 | $346.87 | 1.4:1 | 54% | 3.01 | 73 | 8.4% | -0.4% | 10 |
+| **MCK** | ⚠ RS rank 64 | ema_pullback | $891.68 | $859.66 | $980.85 | 2.8:1 | 50% | 2.88 | 64 | 10.5% | +0.6% | 3 |
+| **VRSN** | ⚠ RS rank 54 | ema_pullback | $286.94 | $274.00 | $315.63 | 2.2:1 | 50% | 2.59 | 54 | 7.9% | -0.0% | 11 |
 
 ## Expert System — enhanced_ema_pullback (PAPER)
 
-_No expert setups today — the reclaim entry is selective; no signal is a signal._
+| Stock | Buy-stop Entry | Initial Stop | Exit (3.5×ATR trail) | RS | Qty |
+|---|---|---|---|---|---|
+| **INCY** | $126.14 | $120.73 (−4.3%) | close − $12.31 | 89 | 25 |
 
 ## INSTITUTIONAL MOMENTUM / TREND SETUPS
 
 | Stock | Status | Score | Entry Quality | Entry | Stop | Trail | RS | 60D | Pullback | RelVol | Sector | Earnings | Qty | €Risk |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **IVZ** | ⚪ INSUFFICIENT SAMPLE | 70.2 | IDEAL | $32.37 | $31.34 | close−$2.81 | 89 | +15.1% | 3.9% | 0.80 | Unknown | 48d | 100 | €96 |
+| **INCY** | ⚪ INSUFFICIENT SAMPLE | 68.5 | IDEAL | $126.14 | $120.73 | close−$10.55 | 89 | +16.1% | 5.0% | 0.99 | Unknown | 47d | 22 | €110 |
+| **EOG** | 🔴 REJECTED (RS 74 < 80) | 61.4 | IDEAL | $147.16 | $141.90 | close−$10.38 | 74 | +8.4% | 4.3% | 0.95 | Energy | 56d | 22 | €107 |
 
-**IVZ** (score 70.2)
-- WHY IT QUALIFIES: RS 89 · Stage-2 uptrend · 3.9% controlled pullback · volume contracted 20% · EMA20 reclaimed · regime BULL_MODERATE · earnings 48d
-- WHAT INVALIDATES IT: entry gaps >2% above $32.37 · close below $31.34 · regime turns bear · earnings date changes
+**INCY** (score 68.5)
+- WHY IT QUALIFIES: RS 89 · Stage-2 uptrend · 5.0% controlled pullback · volume contracted 1% · EMA20 reclaimed · regime BULL_MODERATE · earnings 47d
+- WHAT INVALIDATES IT: entry gaps >2% above $126.14 · close below $120.73 · regime turns bear · earnings date changes
+
+**EOG** (score 61.4)
+- WHY IT QUALIFIES: RS 74 · Stage-2 uptrend · 4.3% controlled pullback · volume contracted 5% · EMA20 reclaimed · regime BULL_MODERATE · earnings 56d
+- WHAT INVALIDATES IT: entry gaps >2% above $147.16 · close below $141.90 · regime turns bear · earnings date changes
 
 
 ## Forward Signal Journal
 
-0/20 closed — 20 more before the forward record means anything.  Tracked 1 · open 1 · closed 0
+0/20 closed — 20 more before the forward record means anything.  Tracked 5 · open 5 · closed 0
 
 - Win rate: —
 - Expectancy: —R per trade
 - Profit factor: —
 
-_Generated 2026-09-09 12:51 — research only, not financial advice._
+_Generated 2026-09-10 12:53 — research only, not financial advice._
