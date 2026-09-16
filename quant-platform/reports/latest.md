@@ -1,61 +1,54 @@
-# Swing Scan — Tuesday, September 15, 2026
+# Swing Scan — Wednesday, September 16, 2026
 
 **Regime:** BULL MODERATE (scale 75%)  
 **Account:** €30,000 | Risk/trade €225 | Max open 5 | Prices in $ @ EURUSD 1.080
 
-> 2 VALIDATED setup(s) + 3 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
+> 1 VALIDATED setup(s) + 4 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
 
 | Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | BelowHigh | vsEMA20 | Qty |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **MPC** | ✅ | minervini_vcp | $396.45 | $364.73 | $436.10 | 1.3:1 | 62% | 6.01 | 98 | 3.2% | +5.7% | 7 |
-| **C** | ✅ | volume_breakout | $136.18 | $126.65 | $149.80 | 1.4:1 | 62% | 2.78 | 75 | 7.5% | +0.4% | 23 |
-| **GOOGL** | ⚠ RS rank 66 | volume_breakout | $349.39 | $324.93 | $384.33 | 1.4:1 | 100% | inf | 66 | 14.4% | +2.4% | 9 |
-| **TGT** | ⚠ win rate 42% | ema_pullback | $158.70 | $153.92 | $174.57 | 3.3:1 | 42% | 2.72 | 95 | 7.1% | +0.0% | 20 |
-| **DGX** | ⚠ PF 0.69 | ema_pullback | $237.89 | $229.96 | $261.68 | 3.0:1 | 50% | 0.69 | 87 | 3.8% | +0.3% | 13 |
+| **AMP** | ✅ | volume_breakout | $559.34 | $520.19 | $615.27 | 1.4:1 | 69% | 6.91 | 78 | 2.3% | +0.7% | 5 |
+| **OXY** | ⚠ only 1 hist. trades | minervini_vcp | $63.52 | $58.49 | $69.87 | 1.3:1 | 100% | inf | 89 | 5.0% | +5.5% | 48 |
+| **SWKS** | ⚠ only 1 hist. trades | minervini_vcp | $90.00 | $82.80 | $99.00 | 1.2:1 | 100% | inf | 93 | 2.5% | +20.2% | 33 |
+| **NEM** | ⚠ win rate 41% | ema_pullback | $124.19 | $120.32 | $136.61 | 3.2:1 | 41% | 3.08 | 86 | 8.0% | +0.1% | 26 |
+| **SLB** | ⚠ win rate 33% | ema_pullback | $54.20 | $51.64 | $59.62 | 2.1:1 | 33% | 1.74 | 85 | 9.9% | -1.6% | 59 |
 
 ## Expert System — enhanced_ema_pullback (PAPER)
 
 | Stock | Buy-stop Entry | Initial Stop | Exit (3.5×ATR trail) | RS | Qty |
 |---|---|---|---|---|---|
-| **TGT** | $158.86 | $153.28 (−3.5%) | close − $14.97 | 95 | 20 |
-| **ZBRA** | $352.16 | $333.46 (−5.3%) | close − $41.09 | 95 | 9 |
-| **BDX** | $183.09 | $174.11 (−4.9%) | close − $15.21 | 83 | 17 |
-| **KO** | $89.44 | $87.06 (−2.7%) | close − $4.89 | 81 | 36 |
+| **NEM** | $124.31 | $120.22 (−3.3%) | close − $15.10 | 86 | 26 |
 
 ## INSTITUTIONAL MOMENTUM / TREND SETUPS
 
 | Stock | Status | Score | Entry Quality | Entry | Stop | Trail | RS | 60D | Pullback | RelVol | Sector | Earnings | Qty | €Risk |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **TGT** | ⚪ INSUFFICIENT SAMPLE | 79.3 | IDEAL | $158.86 | $153.28 | close−$12.83 | 95 | +25.1% | 7.1% | 0.67 | Unknown | 64d | 20 | €103 |
-| **ZBRA** | ⚪ INSUFFICIENT SAMPLE | 67.2 | IDEAL | $352.16 | $333.46 | close−$35.22 | 95 | +51.0% | 8.9% | 0.98 | Unknown | 49d | 6 | €104 |
-| **BDX** | ⚪ INSUFFICIENT SAMPLE | 64.4 | IDEAL | $183.09 | $174.11 | close−$13.04 | 83 | +29.9% | 4.7% | 1.00 | Unknown | 51d | 13 | €108 |
-| **CPAY** | ⛔ PORTFOLIO BLOCKED (sector cap) | 62.7 | IDEAL | $412.97 | $399.52 | close−$27.86 | 88 | +16.8% | 3.5% | 0.99 | Unknown | 50d | 7 | €87 |
-| **NWS** | 🔴 REJECTED (RS 72 < 80) | 62.3 | IDEAL | $33.89 | $32.29 | close−$2.46 | 72 | +14.7% | 5.0% | 0.82 | Unknown | 51d | 75 | €112 |
-| **KO** | ⛔ PORTFOLIO BLOCKED (max positions) | 61.6 | IDEAL | $89.44 | $87.06 | close−$4.19 | 81 | +11.8% | 3.4% | 0.82 | Staples | 35d | 36 | €79 |
-| **MET** | ⛔ PORTFOLIO BLOCKED (max positions) | 60.8 | IDEAL | $97.85 | $93.46 | close−$5.37 | 83 | +14.6% | 3.2% | 0.91 | Unknown | 55d | 27 | €110 |
-| **GILD** | 🔴 REJECTED (RS 77 < 80) | 59.1 | IDEAL | $146.56 | $142.31 | close−$10.41 | 77 | +16.7% | 4.0% | 0.94 | Health | 44d | 22 | €86 |
-| **MSI** | 🔴 REJECTED (RS 66 < 80) | 59.1 | IDEAL | $474.60 | $456.00 | close−$30.58 | 66 | +18.3% | 4.2% | 0.87 | Unknown | 51d | 6 | €103 |
-| **NWSA** | 🔴 REJECTED (RS 76 < 80) | 56.5 | ACCEPTABLE | $30.59 | $28.89 | close−$2.10 | 76 | +18.0% | 3.1% | 0.94 | Unknown | 51d | 71 | €111 |
+| **NEM** | ⚪ INSUFFICIENT SAMPLE | 67.9 | IDEAL | $124.31 | $120.22 | close−$12.94 | 86 | +19.9% | 8.0% | 0.75 | Unknown | 36d | 26 | €99 |
+| **KO** | ⚪ INSUFFICIENT SAMPLE | 61.4 | IDEAL | $88.80 | $86.55 | close−$4.10 | 80 | +12.4% | 3.5% | 0.84 | Staples | 34d | 36 | €75 |
+| **NWS** | 🔴 REJECTED (RS 70 < 80) | 60.8 | IDEAL | $33.81 | $32.29 | close−$2.40 | 70 | +17.8% | 5.3% | 0.90 | Unknown | 50d | 79 | €111 |
+| **GILD** | 🔴 REJECTED (RS 77 < 80) | 59.7 | IDEAL | $146.45 | $141.83 | close−$10.34 | 77 | +18.9% | 3.6% | 0.85 | Health | 43d | 22 | €94 |
+| **NWSA** | 🔴 REJECTED (RS 74 < 80) | 58.3 | IDEAL | $30.47 | $28.90 | close−$2.08 | 74 | +20.8% | 3.5% | 0.91 | Unknown | 50d | 77 | €112 |
+| **MCK** | 🔴 REJECTED (RS 67 < 80) | 51.7 | IDEAL | $900.46 | $868.38 | close−$71.10 | 67 | +20.0% | 3.3% | 0.99 | Unknown | 49d | 3 | €89 |
 
-**TGT** (score 79.3)
-- WHY IT QUALIFIES: RS 95 · Stage-2 uptrend · 7.1% controlled pullback · volume contracted 33% · EMA20 reclaimed · regime BULL_MODERATE · earnings 64d
-- WHAT INVALIDATES IT: entry gaps >2% above $158.86 · close below $153.28 · regime turns bear · earnings date changes
+**NEM** (score 67.9)
+- WHY IT QUALIFIES: RS 86 · Stage-2 uptrend · 8.0% controlled pullback · volume contracted 25% · EMA20 reclaimed · regime BULL_MODERATE · earnings 36d
+- WHAT INVALIDATES IT: entry gaps >2% above $124.31 · close below $120.22 · regime turns bear · earnings date changes
 
-**ZBRA** (score 67.2)
-- WHY IT QUALIFIES: RS 95 · Stage-2 uptrend · 8.9% controlled pullback · volume contracted 2% · EMA20 reclaimed · regime BULL_MODERATE · earnings 49d
-- WHAT INVALIDATES IT: entry gaps >2% above $352.16 · close below $333.46 · regime turns bear · earnings date changes
+**KO** (score 61.4)
+- WHY IT QUALIFIES: RS 80 · Stage-2 uptrend · 3.5% controlled pullback · volume contracted 16% · EMA20 reclaimed · regime BULL_MODERATE · earnings 34d
+- WHAT INVALIDATES IT: entry gaps >2% above $88.80 · close below $86.55 · regime turns bear · earnings date changes
 
-**BDX** (score 64.4)
-- WHY IT QUALIFIES: RS 83 · Stage-2 uptrend · 4.7% controlled pullback · volume contracted 0% · EMA20 reclaimed · regime BULL_MODERATE · earnings 51d
-- WHAT INVALIDATES IT: entry gaps >2% above $183.09 · close below $174.11 · regime turns bear · earnings date changes
+**NWS** (score 60.8)
+- WHY IT QUALIFIES: RS 70 · Stage-2 uptrend · 5.3% controlled pullback · volume contracted 10% · EMA20 reclaimed · regime BULL_MODERATE · earnings 50d
+- WHAT INVALIDATES IT: entry gaps >2% above $33.81 · close below $32.29 · regime turns bear · earnings date changes
 
 
 ## Forward Signal Journal
 
-0/20 closed — 20 more before the forward record means anything.  Tracked 6 · open 6 · closed 0
+0/20 closed — 20 more before the forward record means anything.  Tracked 2 · open 2 · closed 0
 
 - Win rate: —
 - Expectancy: —R per trade
 - Profit factor: —
 
-_Generated 2026-09-15 13:22 — research only, not financial advice._
+_Generated 2026-09-16 13:21 — research only, not financial advice._
