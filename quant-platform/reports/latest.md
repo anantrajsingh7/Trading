@@ -1,17 +1,17 @@
-# Swing Scan — Monday, October 12, 2026
+# Swing Scan — Tuesday, October 13, 2026
 
 **Regime:** BULL MODERATE (scale 75%)  
 **Account:** €30,000 | Risk/trade €225 | Max open 5 | Prices in $ @ EURUSD 1.080
 
-> 1 VALIDATED setup(s) + 4 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
+> No fully validated setups today — 5 watchlist name(s) shown for context. Stay in cash or wait.
 
 | Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | BelowHigh | vsEMA20 | Qty |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **IFF** | ✅ | ema_pullback | $84.80 | $81.78 | $93.28 | 2.8:1 | 50% | 2.30 | 85 | 4.6% | +0.6% | 38 |
-| **WST** | ⚠ win rate 33%; PF 1.08 | ema_pullback | $367.64 | $354.61 | $404.40 | 2.8:1 | 33% | 1.08 | 85 | 4.7% | +0.6% | 8 |
-| **ETN** | ⚠ win rate 23%; PF 0.81 | ema_pullback | $430.33 | $416.14 | $473.36 | 3.0:1 | 23% | 0.81 | 71 | 10.0% | +0.3% | 7 |
-| **WDAY** | ⚠ win rate 31%; PF 0.82 | ema_pullback | $189.90 | $183.07 | $208.88 | 2.8:1 | 31% | 0.82 | 82 | 23.2% | +0.6% | 17 |
-| **CPAY** | ⚠ win rate 43% | ema_pullback | $401.14 | $387.95 | $441.26 | 3.0:1 | 43% | 1.74 | 84 | 6.2% | +0.3% | 8 |
+| **ADM** | ⚠ win rate 33%; PF 1.19 | ema_pullback | $82.31 | $79.32 | $90.54 | 2.8:1 | 33% | 1.19 | 81 | 7.3% | +0.6% | 39 |
+| **BBY** | ⚠ win rate 39%; PF 0.82 | ema_pullback | $88.28 | $85.47 | $97.10 | 3.1:1 | 39% | 0.82 | 84 | 8.6% | +0.2% | 36 |
+| **HOOD** | ⚠ win rate 28%; RS rank 47; earnings in 14d | ema_pullback | $111.33 | $105.85 | $122.46 | 2.0:1 | 28% | 3.36 | 47 | 26.0% | -0.8% | 29 |
+| **CPAY** | ⚠ win rate 43% | ema_pullback | $402.42 | $387.88 | $442.67 | 2.8:1 | 43% | 1.74 | 84 | 5.9% | +0.6% | 8 |
+| **HPQ** | ⚠ win rate 33%; PF 0.73 | ema_pullback | $30.70 | $29.53 | $33.78 | 2.6:1 | 33% | 0.73 | 93 | 15.2% | -2.4% | 105 |
 
 ## Expert System — enhanced_ema_pullback (PAPER)
 
@@ -21,29 +21,19 @@ _No expert setups today — the reclaim entry is selective; no signal is a signa
 
 | Stock | Status | Score | Entry Quality | Entry | Stop | Trail | RS | 60D | Pullback | RelVol | Sector | Earnings | Qty | €Risk |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **TWLO** | ⚪ INSUFFICIENT SAMPLE | 78.6 | IDEAL | $278.51 | $268.33 | close−$44.58 | 97 | +34.6% | 9.8% | 0.38 | Unknown | 17d | 11 | €104 |
-| **WST** | ⚪ INSUFFICIENT SAMPLE | 76.2 | IDEAL | $368.00 | $357.29 | close−$26.39 | 85 | +2.7% | 4.7% | 0.60 | Unknown | 17d | 8 | €79 |
-| **MRK** | ⚪ INSUFFICIENT SAMPLE | 72.9 | IDEAL | $145.32 | $137.94 | close−$10.29 | 90 | +14.5% | 6.9% | 0.71 | Health | 17d | 16 | €109 |
+| **WST** | ⚪ INSUFFICIENT SAMPLE | 74.9 | IDEAL | $369.42 | $357.25 | close−$26.94 | 86 | +4.8% | 4.3% | 0.55 | Unknown | 16d | 8 | €90 |
 
-**TWLO** (score 78.6)
-- WHY IT QUALIFIES: RS 97 · Stage-2 uptrend · 9.8% controlled pullback · volume contracted 62% · EMA20 reclaimed · regime BULL_MODERATE · earnings 17d
-- WHAT INVALIDATES IT: entry gaps >2% above $278.51 · close below $268.33 · regime turns bear · earnings date changes
-
-**WST** (score 76.2)
-- WHY IT QUALIFIES: RS 85 · Stage-2 uptrend · 4.7% controlled pullback · volume contracted 40% · EMA20 reclaimed · regime BULL_MODERATE · earnings 17d
-- WHAT INVALIDATES IT: entry gaps >2% above $368.00 · close below $357.29 · regime turns bear · earnings date changes
-
-**MRK** (score 72.9)
-- WHY IT QUALIFIES: RS 90 · Stage-2 uptrend · 6.9% controlled pullback · volume contracted 29% · EMA20 reclaimed · regime BULL_MODERATE · earnings 17d
-- WHAT INVALIDATES IT: entry gaps >2% above $145.32 · close below $137.94 · regime turns bear · earnings date changes
+**WST** (score 74.9)
+- WHY IT QUALIFIES: RS 86 · Stage-2 uptrend · 4.3% controlled pullback · volume contracted 45% · EMA20 reclaimed · regime BULL_MODERATE · earnings 16d
+- WHAT INVALIDATES IT: entry gaps >2% above $369.42 · close below $357.25 · regime turns bear · earnings date changes
 
 
 ## Forward Signal Journal
 
-0/20 closed — 20 more before the forward record means anything.  Tracked 1 · open 1 · closed 0
+0/20 closed — 20 more before the forward record means anything.  Tracked 0 · open 0 · closed 0
 
 - Win rate: —
 - Expectancy: —R per trade
 - Profit factor: —
 
-_Generated 2026-10-12 17:32 — research only, not financial advice._
+_Generated 2026-10-13 15:42 — research only, not financial advice._
