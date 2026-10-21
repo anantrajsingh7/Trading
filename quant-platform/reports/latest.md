@@ -1,17 +1,19 @@
-# Swing Scan — Tuesday, October 20, 2026
+# Swing Scan — Wednesday, October 21, 2026
 
 **Regime:** BULL MODERATE (scale 75%)  
 **Account:** €30,000 | Risk/trade €225 | Max open 5 | Prices in $ @ EURUSD 1.080
 
-> No fully validated setups today — 5 watchlist name(s) shown for context. Stay in cash or wait.
+> 1 VALIDATED setup(s) + 6 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
 
 | Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | BelowHigh | vsEMA20 | Qty |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **HAS** | ⚠ earnings in 0d | volume_breakout | $98.49 | $91.60 | $108.34 | 1.4:1 | 69% | 3.69 | 78 | 5.8% | +5.4% | 32 |
-| **CVX** | ⚠ only 3 hist. trades; earnings in 10d | minervini_vcp | $224.37 | $206.42 | $246.81 | 1.3:1 | 67% | 26.56 | 91 | 0.6% | +5.0% | 13 |
-| **ZBRA** | ⚠ win rate 38%; earnings in 14d | ema_pullback | $375.77 | $362.98 | $413.35 | 2.9:1 | 38% | 1.82 | 95 | 3.8% | +0.4% | 8 |
-| **NTAP** | ⚠ win rate 40% | ema_pullback | $207.37 | $196.14 | $228.11 | 1.8:1 | 40% | 2.17 | 97 | 13.9% | -3.8% | 15 |
-| **DDOG** | ⚠ win rate 33% | ema_pullback | $260.36 | $246.40 | $286.40 | 1.9:1 | 33% | 1.88 | 96 | 13.4% | -1.7% | 12 |
+| **VTRS** | ✅ | minervini_vcp | $18.65 | $17.16 | $20.51 | 1.3:1 | 67% | 5.98 | 93 | 0.5% | +5.1% | 162 |
+| **ADP** | ⚠ earnings in 7d | minervini_vcp | $292.75 | $269.33 | $322.03 | 1.2:1 | 67% | 5.82 | 83 | 0.5% | +6.2% | 10 |
+| **FFIV** | ⚠ earnings in 6d | ema_pullback | $456.71 | $438.51 | $502.38 | 2.5:1 | 50% | 1.71 | 94 | 5.5% | +1.0% | 7 |
+| **OKE** | ⚠ earnings in 6d | ema_pullback | $92.85 | $88.59 | $102.13 | 2.2:1 | 50% | 1.41 | 77 | 7.0% | +1.8% | 34 |
+| **HST** | ⚠ earnings in 14d | minervini_vcp | $24.80 | $22.82 | $27.28 | 1.3:1 | 57% | 1.70 | 87 | 2.7% | +7.5% | 122 |
+| **IQV** | ⚠ only 1 hist. trades; earnings in 6d | minervini_vcp | $267.85 | $250.03 | $294.64 | 1.5:1 | 100% | inf | 89 | 3.4% | +1.3% | 12 |
+| **CRL** | ⚠ only 4 hist. trades; earnings in 14d | minervini_vcp | $315.45 | $290.21 | $347.00 | 1.3:1 | 75% | 8.02 | 96 | 5.4% | +5.7% | 9 |
 
 ## Expert System — enhanced_ema_pullback (PAPER)
 
@@ -21,24 +23,19 @@ _No expert setups today — the reclaim entry is selective; no signal is a signa
 
 | Stock | Status | Score | Entry Quality | Entry | Stop | Trail | RS | 60D | Pullback | RelVol | Sector | Earnings | Qty | €Risk |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **ZBRA** | 🟡 WATCH (earnings 14d) | 72.4 | IDEAL | $376.15 | $363.20 | close−$30.73 | 95 | +44.6% | 3.8% | 0.92 | Unknown | 14d | 8 | €96 |
-| **IQV** | 🟡 WATCH (earnings 7d) | 71.7 | IDEAL | $266.15 | $250.71 | close−$22.15 | 92 | +27.8% | 4.2% | 0.88 | Unknown | 7d | 7 | €100 |
+| **FFIV** | 🟡 WATCH (earnings 6d) | 75.7 | IDEAL | $457.17 | $435.05 | close−$44.48 | 94 | +11.9% | 5.5% | 0.96 | Unknown | 6d | 5 | €102 |
 
-**ZBRA** (score 72.4)
-- WHY IT QUALIFIES: RS 95 · Stage-2 uptrend · 3.8% controlled pullback · volume contracted 8% · EMA20 reclaimed · regime BULL_MODERATE · earnings 14d
-- WHAT INVALIDATES IT: entry gaps >2% above $376.15 · close below $363.20 · regime turns bear · earnings date changes
-
-**IQV** (score 71.7)
-- WHY IT QUALIFIES: RS 92 · Stage-2 uptrend · 4.2% controlled pullback · volume contracted 12% · EMA20 reclaimed · regime BULL_MODERATE · earnings 7d
-- WHAT INVALIDATES IT: entry gaps >2% above $266.15 · close below $250.71 · regime turns bear · earnings date changes
+**FFIV** (score 75.7)
+- WHY IT QUALIFIES: RS 94 · Stage-2 uptrend · 5.5% controlled pullback · volume contracted 4% · EMA20 reclaimed · regime BULL_MODERATE · earnings 6d
+- WHAT INVALIDATES IT: entry gaps >2% above $457.17 · close below $435.05 · regime turns bear · earnings date changes
 
 
 ## Forward Signal Journal
 
-0/20 closed — 20 more before the forward record means anything.  Tracked 0 · open 0 · closed 0
+0/20 closed — 20 more before the forward record means anything.  Tracked 1 · open 1 · closed 0
 
 - Win rate: —
 - Expectancy: —R per trade
 - Profit factor: —
 
-_Generated 2026-10-20 13:27 — research only, not financial advice._
+_Generated 2026-10-21 13:35 — research only, not financial advice._
