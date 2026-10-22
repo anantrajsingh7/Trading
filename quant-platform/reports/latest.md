@@ -1,19 +1,17 @@
-# Swing Scan — Wednesday, October 21, 2026
+# Swing Scan — Thursday, October 22, 2026
 
 **Regime:** BULL MODERATE (scale 75%)  
 **Account:** €30,000 | Risk/trade €225 | Max open 5 | Prices in $ @ EURUSD 1.080
 
-> 1 VALIDATED setup(s) + 6 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
+> 1 VALIDATED setup(s) + 4 watchlist name(s). Only trade VALIDATED rows; WATCH rows show why they fell short.
 
 | Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | BelowHigh | vsEMA20 | Qty |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **VTRS** | ✅ | minervini_vcp | $18.65 | $17.16 | $20.51 | 1.3:1 | 67% | 5.98 | 93 | 0.5% | +5.1% | 162 |
-| **ADP** | ⚠ earnings in 7d | minervini_vcp | $292.75 | $269.33 | $322.03 | 1.2:1 | 67% | 5.82 | 83 | 0.5% | +6.2% | 10 |
-| **FFIV** | ⚠ earnings in 6d | ema_pullback | $456.71 | $438.51 | $502.38 | 2.5:1 | 50% | 1.71 | 94 | 5.5% | +1.0% | 7 |
-| **OKE** | ⚠ earnings in 6d | ema_pullback | $92.85 | $88.59 | $102.13 | 2.2:1 | 50% | 1.41 | 77 | 7.0% | +1.8% | 34 |
-| **HST** | ⚠ earnings in 14d | minervini_vcp | $24.80 | $22.82 | $27.28 | 1.3:1 | 57% | 1.70 | 87 | 2.7% | +7.5% | 122 |
-| **IQV** | ⚠ only 1 hist. trades; earnings in 6d | minervini_vcp | $267.85 | $250.03 | $294.64 | 1.5:1 | 100% | inf | 89 | 3.4% | +1.3% | 12 |
-| **CRL** | ⚠ only 4 hist. trades; earnings in 14d | minervini_vcp | $315.45 | $290.21 | $347.00 | 1.3:1 | 75% | 8.02 | 96 | 5.4% | +5.7% | 9 |
+| **CRL** | ⚠ earnings in 13d | minervini_vcp | $344.87 | $317.28 | $379.36 | 1.2:1 | 80% | 11.50 | 97 | 1.2% | +13.9% | 8 |
+| **DHR** | ✅ | volume_breakout | $233.86 | $217.49 | $257.25 | 1.4:1 | 64% | 3.60 | 77 | 3.1% | +5.2% | 13 |
+| **ADP** | ⚠ earnings in 6d | minervini_vcp | $294.50 | $270.94 | $323.95 | 1.2:1 | 67% | 6.01 | 82 | 0.6% | +6.2% | 10 |
+| **IQV** | ⚠ only 2 hist. trades; earnings in 5d | minervini_vcp | $276.63 | $254.50 | $304.29 | 1.3:1 | 100% | inf | 93 | 0.3% | +4.2% | 10 |
+| **NTAP** | ⚠ win rate 43% | ema_pullback | $217.21 | $208.79 | $238.93 | 2.6:1 | 43% | 2.30 | 97 | 9.8% | +0.9% | 14 |
 
 ## Expert System — enhanced_ema_pullback (PAPER)
 
@@ -23,11 +21,11 @@ _No expert setups today — the reclaim entry is selective; no signal is a signa
 
 | Stock | Status | Score | Entry Quality | Entry | Stop | Trail | RS | 60D | Pullback | RelVol | Sector | Earnings | Qty | €Risk |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **FFIV** | 🟡 WATCH (earnings 6d) | 75.7 | IDEAL | $457.17 | $435.05 | close−$44.48 | 94 | +11.9% | 5.5% | 0.96 | Unknown | 6d | 5 | €102 |
+| **JCI** | 🔴 REJECTED (RS 79 < 80; earnings 5d) | 64.4 | IDEAL | $151.17 | $142.76 | close−$12.31 | 79 | +8.0% | 5.9% | 0.93 | Unknown | 5d | 14 | €109 |
 
-**FFIV** (score 75.7)
-- WHY IT QUALIFIES: RS 94 · Stage-2 uptrend · 5.5% controlled pullback · volume contracted 4% · EMA20 reclaimed · regime BULL_MODERATE · earnings 6d
-- WHAT INVALIDATES IT: entry gaps >2% above $457.17 · close below $435.05 · regime turns bear · earnings date changes
+**JCI** (score 64.4)
+- WHY IT QUALIFIES: RS 79 · Stage-2 uptrend · 5.9% controlled pullback · volume contracted 7% · EMA20 reclaimed · regime BULL_MODERATE · earnings 5d
+- WHAT INVALIDATES IT: entry gaps >2% above $151.17 · close below $142.76 · regime turns bear · earnings date changes
 
 
 ## Forward Signal Journal
@@ -38,4 +36,4 @@ _No expert setups today — the reclaim entry is selective; no signal is a signa
 - Expectancy: —R per trade
 - Profit factor: —
 
-_Generated 2026-10-21 13:35 — research only, not financial advice._
+_Generated 2026-10-22 13:39 — research only, not financial advice._
