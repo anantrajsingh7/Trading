@@ -1,4 +1,4 @@
-# Swing Scan — Monday, November 02, 2026
+# Swing Scan — Tuesday, November 03, 2026
 
 **Regime:** BULL MODERATE (scale 75%)  
 **Account:** €30,000 | Risk/trade €225 | Max open 5 | Prices in $ @ EURUSD 1.080
@@ -7,11 +7,11 @@
 
 | Stock | Status | Strategy | Entry | Stop | Target +10% | R:R | HistWin | PF | RS | BelowHigh | vsEMA20 | Qty |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **WELL** | ✅ | ema_pullback | $236.15 | $225.94 | $259.77 | 2.3:1 | 50% | 3.21 | 72 | 7.1% | +1.4% | 13 |
-| **ZBRA** | ⚠ win rate 38%; earnings in 1d | ema_pullback | $367.57 | $353.19 | $404.33 | 2.6:1 | 38% | 1.73 | 92 | 6.4% | -2.4% | 8 |
-| **CTSH** | ⚠ RS rank 58 | ema_pullback | $66.01 | $63.03 | $72.62 | 2.2:1 | 67% | 3.61 | 58 | 22.8% | +1.6% | 49 |
-| **KVUE** | ⚠ win rate 40%; PF 0.44 | volume_breakout | $19.31 | $17.96 | $21.24 | 1.4:1 | 40% | 0.44 | 74 | 3.5% | +2.4% | 167 |
-| **NDSN** | ⚠ win rate 42%; PF 0.91 | ema_pullback | $326.92 | $315.48 | $359.61 | 2.9:1 | 42% | 0.91 | 77 | 3.3% | +0.5% | 9 |
+| **OKE** | ✅ | ema_pullback | $93.35 | $89.87 | $102.68 | 2.7:1 | 50% | 1.46 | 81 | 5.5% | +0.8% | 34 |
+| **TRGP** | ⚠ win rate 48%; earnings in 2d | ema_pullback | $299.80 | $287.52 | $329.78 | 2.4:1 | 48% | 2.95 | 96 | 5.3% | +1.1% | 10 |
+| **CDW** | ⚠ win rate 27%; PF 0.87; earnings in 1d | ema_pullback | $151.69 | $143.64 | $166.86 | 1.9:1 | 27% | 0.87 | 70 | 8.7% | -1.3% | 21 |
+| **JCI** | ⚠ win rate 33%; RS rank 61 | ema_pullback | $150.84 | $146.01 | $165.92 | 3.1:1 | 33% | 1.57 | 61 | 6.0% | +0.2% | 21 |
+| **SLB** | ⚠ win rate 30%; RS rank 60 | ema_pullback | $52.57 | $50.21 | $57.83 | 2.2:1 | 30% | 1.47 | 60 | 12.6% | +1.6% | 61 |
 
 ## Expert System — enhanced_ema_pullback (PAPER)
 
@@ -21,11 +21,16 @@ _No expert setups today — the reclaim entry is selective; no signal is a signa
 
 | Stock | Status | Score | Entry Quality | Entry | Stop | Trail | RS | 60D | Pullback | RelVol | Sector | Earnings | Qty | €Risk |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| **NDSN** | 🔴 REJECTED (RS 77 < 80) | 58.1 | IDEAL | $327.24 | $309.78 | close−$21.26 | 77 | +5.7% | 3.3% | 0.92 | Unknown | 37d | 6 | €97 |
+| **HUM** | 🟡 WATCH (earnings 3d) | 75.6 | IDEAL | $414.58 | $395.67 | close−$44.21 | 97 | +7.6% | 9.1% | 0.42 | Unknown | 3d | 6 | €105 |
+| **KMI** | 🔴 REJECTED (RS 71 < 80) | 59.5 | IDEAL | $33.36 | $31.97 | close−$2.49 | 71 | +7.1% | 3.2% | 0.71 | Unknown | 85d | 87 | €112 |
 
-**NDSN** (score 58.1)
-- WHY IT QUALIFIES: RS 77 · Stage-2 uptrend · 3.3% controlled pullback · volume contracted 8% · EMA20 reclaimed · regime BULL_MODERATE · earnings 37d
-- WHAT INVALIDATES IT: entry gaps >2% above $327.24 · close below $309.78 · regime turns bear · earnings date changes
+**HUM** (score 75.6)
+- WHY IT QUALIFIES: RS 97 · Stage-2 uptrend · 9.1% controlled pullback · volume contracted 58% · EMA20 reclaimed · regime BULL_MODERATE · earnings 3d
+- WHAT INVALIDATES IT: entry gaps >2% above $414.58 · close below $395.67 · regime turns bear · earnings date changes
+
+**KMI** (score 59.5)
+- WHY IT QUALIFIES: RS 71 · Stage-2 uptrend · 3.2% controlled pullback · volume contracted 29% · EMA20 reclaimed · regime BULL_MODERATE · earnings 85d
+- WHAT INVALIDATES IT: entry gaps >2% above $33.36 · close below $31.97 · regime turns bear · earnings date changes
 
 
 ## Forward Signal Journal
@@ -36,4 +41,4 @@ _No expert setups today — the reclaim entry is selective; no signal is a signa
 - Expectancy: —R per trade
 - Profit factor: —
 
-_Generated 2026-11-02 17:58 — research only, not financial advice._
+_Generated 2026-11-03 15:59 — research only, not financial advice._
