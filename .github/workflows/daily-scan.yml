@@ -1,14 +1,11 @@
 name: Daily Swing Scan
 
 on:
-  workflow_dispatch:        # run on demand (e.g. from phone via GitHub app)
-  schedule:
-    # GitHub delays or silently drops scheduled runs under load, so we make
-    # three attempts. The "already ran today" guard below means only the
-    # first one that actually fires does the work and sends the email.
-    - cron: "0 8 * * 1-5"    # 08:00 UTC = 10:00 Amsterdam (CEST)
-    - cron: "40 8 * * 1-5"   # backup
-    - cron: "20 9 * * 1-5"   # last resort
+  # DAILY SCHEDULE AND EMAIL DISABLED at the user's request (2026-11-05).
+  # Manual dispatch only: nothing runs and nothing is emailed unless you
+  # start it yourself from the Actions tab. To re-enable, restore a
+  # `schedule:` block here and the "Email dashboard" step below.
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -52,31 +49,6 @@ jobs:
         env:
           CI: "true"
         run: python swing_dashboard.py
-
-      - name: Email dashboard
-        if: steps.guard.outputs.skip == 'false'
-        working-directory: quant-platform
-        env:
-          SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-          GMAIL_SENDER: ${{ secrets.GMAIL_SENDER }}
-          GMAIL_APP_PASSWORD: ${{ secrets.GMAIL_APP_PASSWORD }}
-          ALERT_EMAIL_TO: anantrajsingh7@gmail.com
-        run: |
-          python - <<'EOF'
-          import os, sys
-          from pathlib import Path
-          from reporting.email_sender import send_dashboard
-          have_creds = bool(os.getenv("SENDGRID_API_KEY", "").strip()) or bool(
-              os.getenv("GMAIL_SENDER", "").strip() and os.getenv("GMAIL_APP_PASSWORD", "").strip())
-          ok = send_dashboard(Path("reports/latest.html"))
-          if ok:
-              print("EMAIL SENT")
-          elif not have_creds:
-              print("EMAIL SKIPPED - no credentials configured")
-          else:
-              print("EMAIL FAILED - credentials present but send failed (see error above)")
-              sys.exit(1)
-          EOF
 
       - name: Commit latest report
         if: steps.guard.outputs.skip == 'false'
